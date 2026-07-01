@@ -48,6 +48,7 @@ export default function Navbar() {
         WebkitBackdropFilter="blur(20px)"
         border="1px solid rgba(255,255,255,0.2)"
         boxShadow="sm"
+        px={{base:'2', lg:"4"}}
       >
         <Flex h="70px" align="center" justify="space-between">
           <HStack gap={3}>
