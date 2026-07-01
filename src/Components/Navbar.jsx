@@ -35,20 +35,21 @@ export default function Navbar() {
     menuItems.find((item) => item.path === location.pathname)?.label ||
     "Gallery";
 
+    console.log("trigger redeploy");
+
   return (
     <>
-      <Box position="sticky"
-  top="0"
-  zIndex="1000"
-  bg="rgba(255,255,255,0.6)"
-  backdropFilter="blur(20px)"
-  WebkitBackdropFilter="blur(20px)"
-  border="1px solid rgba(255,255,255,0.2)"
-  boxShadow="sm">
-        <Flex  h="70px"
-        align="center"
-        justify="space-between"
-        >
+      <Box
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        bg="rgba(255,255,255,0.6)"
+        backdropFilter="blur(20px)"
+        WebkitBackdropFilter="blur(20px)"
+        border="1px solid rgba(255,255,255,0.2)"
+        boxShadow="sm"
+      >
+        <Flex h="70px" align="center" justify="space-between">
           <HStack gap={3}>
             <IconButton
               display={{ base: "flex", xl: "none" }}
