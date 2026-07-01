@@ -36,50 +36,60 @@ export default function Navbar() {
     "Gallery";
 
   return (
-    <Box
-      position="sticky"
-      top="0"
-      left="0"
-      w="100%"
-      zIndex="999"
-      bg="rgba(255, 255, 255, 0.75)"
-      backdropFilter="blur(20px)"
-      WebkitBackdropFilter="blur(20px)"
-      borderBottom="1px solid"
-      borderColor="gray.200"
-      boxShadow="sm"
-    >
-      <Flex h="70px" px={6} align="center" justify="space-between">
-        <HStack gap={3}>
-          <IconButton
-            display={{ base: "flex", xl: "none" }}
-            variant="ghost"
-            aria-label="Open menu"
-            onClick={() => setOpen(true)}
-          >
-            <HiOutlineMenu />
-          </IconButton>
+    <>
+      <Box position="sticky"
+  top="0"
+  zIndex="1000"
+  bg="rgba(255,255,255,0.6)"
+  backdropFilter="blur(20px)"
+  WebkitBackdropFilter="blur(20px)"
+  border="1px solid rgba(255,255,255,0.2)"
+  boxShadow="sm">
+        <Flex  h="70px"
+        align="center"
+        justify="space-between"
+        >
+          <HStack gap={3}>
+            <IconButton
+              display={{ base: "flex", xl: "none" }}
+              variant="ghost"
+              aria-label="Open menu"
+              onClick={() => setOpen(true)}
+            >
+              <HiOutlineMenu />
+            </IconButton>
+            <VStack gap={0} alignItems={"flex-start"}>
+              <Heading size="2xl">{currentPage}</Heading>
+              <Text>Total Items</Text>
+            </VStack>
+          </HStack>
 
-          <VStack gap={0} align="flex-start">
-            <Heading size="2xl">{currentPage}</Heading>
-            <Text color="gray.500">Total Items</Text>
-          </VStack>
-        </HStack>
+          <HStack gap={6} mr={2}>
+            <IoSearch size={25} cursor="pointer" />
+            <LuFilter size={25} cursor="pointer" />
+            <IoMdMore size={25} cursor="pointer" />
+          </HStack>
+        </Flex>
+      </Box>
+      <Drawer.Root
+        open={open}
+        onOpenChange={(e) => setOpen(e.open)}
+        placement="start"
+      >
+        <Portal>
+          <Drawer.Backdrop bg="blackAlpha.700" />
 
-        <HStack gap={5}>
-          <IconButton variant="ghost" rounded="full">
-            <IoSearch size={22} />
-          </IconButton>
+          <Drawer.Positioner>
+            <Drawer.Content maxW="260px">
+              <Drawer.CloseTrigger asChild>
+                <CloseButton position="absolute" top={4} right={4} />
+              </Drawer.CloseTrigger>
 
-          <IconButton variant="ghost" rounded="full">
-            <LuFilter size={22} />
-          </IconButton>
-
-          <IconButton variant="ghost" rounded="full">
-            <IoMdMore size={22} />
-          </IconButton>
-        </HStack>
-      </Flex>
-    </Box>
+              <SidebarContent onItemClick={() => setOpen(false)} />
+            </Drawer.Content>
+          </Drawer.Positioner>
+        </Portal>
+      </Drawer.Root>
+    </>
   );
 }

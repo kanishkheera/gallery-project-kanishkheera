@@ -4,7 +4,6 @@ import ImageCard from "../ImageCard";
 import { useEffect, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
-import ChangePagination from "../ChangePagination";
 
 export default function AllPhotos() {
   const [page, setPage] = useState(1);
@@ -88,6 +87,7 @@ export default function AllPhotos() {
           <ImageCard key={photo.id} src={photo.urls.regular} />
         ))}
       </Masonry>
+      
       {loading && (
         <Center py={8}>
           <Spinner size="lg" />
