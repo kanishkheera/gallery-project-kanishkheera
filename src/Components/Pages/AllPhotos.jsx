@@ -61,8 +61,8 @@ export default function AllPhotos() {
     default: 5,
     1400: 4,
     // 1100: 3,
-    // 768: 2,
-    500: 3,
+    768: 3,
+    500: 2,
   };
 
   const gap = useBreakpointValue({

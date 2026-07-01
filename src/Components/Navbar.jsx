@@ -35,8 +35,6 @@ export default function Navbar() {
     menuItems.find((item) => item.path === location.pathname)?.label ||
     "Gallery";
 
-    console.log("trigger redeploy");
-
   return (
     <>
       <Box
