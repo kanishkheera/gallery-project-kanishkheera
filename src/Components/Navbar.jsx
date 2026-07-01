@@ -10,12 +10,12 @@ import {
 import { useLocation } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { LuFilter } from "react-icons/lu";
-import { IoMdMore } from "react-icons/io";
 import { IconButton } from "@chakra-ui/react";
 import { HiOutlineMenu } from "react-icons/hi";
 import { useState } from "react";
 import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
+import ColorMode from "./ColorMode";
 
 const menuItems = [
   { label: "All Photos", path: "/" },
@@ -67,7 +67,7 @@ export default function Navbar() {
           <HStack gap={6} mr={2}>
             <IoSearch size={25} cursor="pointer" />
             <LuFilter size={25} cursor="pointer" />
-            <IoMdMore size={25} cursor="pointer" />
+            <ColorMode/>
           </HStack>
         </Flex>
       </Box>
