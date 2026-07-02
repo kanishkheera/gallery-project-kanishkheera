@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
 import PhotoViewer from "../PhotoViewer";
+import { useSearchParams } from "react-router-dom";
 
 export default function AllPhotos() {
   const [page, setPage] = useState(1);
@@ -19,9 +20,35 @@ export default function AllPhotos() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
-  console.log(selectedIndex);
+  const [searchParams] = useSearchParams();
+  // console.log(selectedIndex);
+  const query = searchParams.get("query");
+  console.log(query);
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+
+  const searchPhotos = async () => {
+    const res = await axios.get("https://api.unsplash.com/search/photos", {
+      headers: {
+        Authorization: `Client-ID ${API_KEY}`,
+      },
+      params: {
+        query,
+        page,
+        per_page: 30,
+      },
+    });
+
+    setData(res.data.results);
+  };
+
+  useEffect(() => {
+    if (query) {
+      searchPhotos();
+    } else {
+      fetchPhotos();
+    }
+  }, [query, page]);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -102,13 +129,13 @@ export default function AllPhotos() {
         ))}
       </Masonry>
 
-        {selectedIndex !== null && (
-          <PhotoViewer
-            photos={data}
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-          />
-        )}
+      {selectedIndex !== null && (
+        <PhotoViewer
+          photos={data}
+          selectedIndex={selectedIndex}
+          setSelectedIndex={setSelectedIndex}
+        />
+      )}
 
       {loading && (
         <Center py={8}>
