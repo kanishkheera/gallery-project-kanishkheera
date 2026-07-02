@@ -27,53 +27,51 @@ export default function AllPhotos() {
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
-  const searchPhotos = async () => {
-    const res = await axios.get("https://api.unsplash.com/search/photos", {
-      headers: {
-        Authorization: `Client-ID ${API_KEY}`,
-      },
-      params: {
-        query,
-        page,
-        per_page: 30,
-      },
-    });
+  const fetchImages = async () => {
+    setLoading(true);
 
-    setData(res.data.results);
-  };
+    try {
+      const url = query
+        ? "https://api.unsplash.com/search/photos"
+        : "https://api.unsplash.com/photos";
 
-  useEffect(() => {
-    if (query) {
-      searchPhotos();
-    } else {
-      fetchPhotos();
-    }
-  }, [query, page]);
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Client-ID ${API_KEY}`,
+        },
+        params: {
+          page,
+          per_page: 30,
+          ...(query && { query }),
+        },
+      });
 
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      setLoading(true);
+      const photos = query ? res.data.results : res.data;
 
-      try {
-        const res = await axios.get(
-          `https://api.unsplash.com/photos?page=${page}&per_page=30`,
-          {
-            headers: {
-              Authorization: `Client-ID ${API_KEY}`,
-            },
-          },
-        );
-
-        setData((prev) => [...prev, ...res.data]);
-      } catch (err) {
-        console.log(err);
+      // If it's the first page, replace images.
+      // Otherwise append them.
+      if (page === 1) {
+        setData(photos);
+      } else {
+        setData((prev) => [...prev, ...photos]);
       }
 
-      setLoading(false);
-    };
+      // Check if more images exist
+      setHasMore(photos.length > 0);
+    } catch (err) {
+      console.log(err);
+    }
 
-    fetchPhotos();
-  }, [page]);
+    setLoading(false);
+  };
+
+ useEffect(() => {
+  fetchImages();
+}, [query, page]);
+
+useEffect(() => {
+  setPage(1);
+}, [query]);
 
   useEffect(() => {
     const handleScroll = () => {
