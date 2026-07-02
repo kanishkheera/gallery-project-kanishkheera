@@ -15,6 +15,7 @@ import { HiOutlineMenu } from "react-icons/hi";
 import { useState } from "react";
 import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
+import SearchBar from "./SearchBar";
 
 const menuItems = [
   { label: "All Photos", path: "/" },
@@ -63,7 +64,7 @@ export default function Navbar() {
           </HStack>
 
           <HStack gap={6} mr={2}>
-            <IoSearch size={25} cursor="pointer" />
+            <SearchBar/>
             <LuFilter size={25} cursor="pointer" />
           </HStack>
         </Flex>
