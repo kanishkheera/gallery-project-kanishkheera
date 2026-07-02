@@ -19,7 +19,6 @@ import SidebarContent from "./SidebarContent";
 const menuItems = [
   { label: "All Photos", path: "/" },
   { label: "Albums", path: "/albums" },
-  { label: "Folders", path: "/folders" },
   { label: "Favorites", path: "/favorites" },
   { label: "Recently Added", path: "/recent" },
   { label: "Deleted Items", path: "/trash" },

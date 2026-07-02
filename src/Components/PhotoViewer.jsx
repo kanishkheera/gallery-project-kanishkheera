@@ -1,5 +1,5 @@
 import { Box, IconButton, Image, Text, Flex, Avatar } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   IoChevronBack,
@@ -26,6 +26,8 @@ export default function PhotoViewer({
   const [favorites, setFavorites] = useState(new Set());
   const [showInfo, setShowInfo] = useState(false);
 
+  const prevIndexRef = useRef(selectedIndex);
+
   const close = () => {
     setSelectedIndex(null);
   };
@@ -37,17 +39,26 @@ export default function PhotoViewer({
     };
   }, []);
 
+  // Handle slide selection (only resets info when the slide actually changes)
   useEffect(() => {
     if (!emblaApi) return;
 
-    emblaApi.scrollTo(selectedIndex, true);
-
     const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap());
+      const newIndex = emblaApi.selectedScrollSnap();
+      setSelectedIndex(newIndex);
       setCanScrollPrev(emblaApi.canScrollPrev());
       setCanScrollNext(emblaApi.canScrollNext());
-      setShowInfo(false);
+
+      // Only close the info panel if the slide actually changed
+      // (this listener also fires on reInit, e.g. when the panel resizes)
+      if (prevIndexRef.current !== newIndex) {
+        setShowInfo(false);
+        prevIndexRef.current = newIndex;
+      }
     };
+
+    emblaApi.scrollTo(selectedIndex, true);
+    prevIndexRef.current = selectedIndex;
 
     onSelect();
 
@@ -59,6 +70,15 @@ export default function PhotoViewer({
       emblaApi.off("reInit", onSelect);
     };
   }, [emblaApi]);
+
+  // Re-measure slide sizes whenever the info panel opens/closes
+  // (its width change resizes the image container)
+  useEffect(() => {
+    if (!emblaApi) return;
+    // let layout settle first
+    const id = requestAnimationFrame(() => emblaApi.reInit());
+    return () => cancelAnimationFrame(id);
+  }, [showInfo, emblaApi]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -100,9 +120,8 @@ export default function PhotoViewer({
 
   const isFavorited = currentPhoto && favorites.has(currentPhoto.id);
 
-  // Responsive chrome sizes
   const HEADER_H = { base: "44px", md: "52px" };
-  const HEADER_H_CSS = { base: "44px", md: "52px" }; // used inside calc()
+  const HEADER_H_CSS = { base: "44px", md: "52px" };
   const INFO_W = 280;
   const OUTER_PX = { base: "10px", md: "90px" };
   const OUTER_PY = { base: "10px", md: "40px" };
@@ -190,7 +209,6 @@ export default function PhotoViewer({
         px={OUTER_PX}
         py={OUTER_PY}
       >
-        {/* White panel — sizes itself to content, capped by viewport */}
         <Flex
           bg="white"
           maxW={PANEL_MAX_W}
@@ -201,7 +219,6 @@ export default function PhotoViewer({
           overflow="hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Main column: header + image */}
           <Flex direction="column" minW={0} minH={0}>
             {/* Header bar */}
             <Flex
@@ -254,13 +271,15 @@ export default function PhotoViewer({
 
                 <IconButton
                   aria-label="Info"
+                  type="button"
                   variant="ghost"
                   size="sm"
                   borderRadius="full"
                   color={showInfo ? "blue.500" : "gray.600"}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    setShowInfo((s) => !s);
+                    setShowInfo((prev) => !prev);
                   }}
                 >
                   <IoInformationCircleOutline size={18} />
@@ -282,7 +301,7 @@ export default function PhotoViewer({
               </Flex>
             </Flex>
 
-            {/* Slider — sized from the current photo's own aspect ratio */}
+            {/* Slider */}
             <Box
               ref={emblaRef}
               overflow="hidden"
@@ -336,7 +355,7 @@ export default function PhotoViewer({
             </Box>
           </Flex>
 
-          {/* Info side panel — full width sheet on mobile, side panel on desktop */}
+          {/* Info side panel */}
           {showInfo && currentPhoto && (
             <Box
               w={{ base: "100%", md: `${INFO_W}px` }}

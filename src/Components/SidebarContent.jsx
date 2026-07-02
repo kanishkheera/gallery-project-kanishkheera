@@ -14,7 +14,6 @@ import {
   MdOutlineSettings,
 } from "react-icons/md";
 import { IoAlbumsOutline } from "react-icons/io5";
-import { FaRegFolderOpen } from "react-icons/fa";
 import { GrFavorite } from "react-icons/gr";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { NavLink } from "react-router-dom";
@@ -29,11 +28,6 @@ const menuItems1 = [
     icon: IoAlbumsOutline,
     label: "Albums",
     path: "/albums",
-  },
-  {
-    icon: FaRegFolderOpen,
-    label: "Folders",
-    path: "/folders",
   },
   {
     icon: GrFavorite,
