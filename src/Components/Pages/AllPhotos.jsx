@@ -1,15 +1,25 @@
-import { Box, Center, Grid, Spinner, Text, useBreakpointValue, } from "@chakra-ui/react";
+import {
+  Box,
+  Center,
+  Grid,
+  Spinner,
+  Text,
+  useBreakpointValue,
+} from "@chakra-ui/react";
 import axios from "axios";
 import ImageCard from "../ImageCard";
 import { useEffect, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
+import PhotoViewer from "../PhotoViewer";
 
 export default function AllPhotos() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  console.log(selectedIndex);
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
@@ -83,11 +93,23 @@ export default function AllPhotos() {
         className="my-masonry-grid"
         columnClassName="my-masonry-grid_column"
       >
-        {data.map((photo) => (
-          <ImageCard key={photo.id} src={photo.urls.regular} />
+        {data.map((photo, index) => (
+          <ImageCard
+            key={photo.id}
+            src={photo.urls.regular}
+            onClick={() => setSelectedIndex(index)}
+          />
         ))}
       </Masonry>
-      
+
+        {selectedIndex !== null && (
+          <PhotoViewer
+            photos={data}
+            selectedIndex={selectedIndex}
+            setSelectedIndex={setSelectedIndex}
+          />
+        )}
+
       {loading && (
         <Center py={8}>
           <Spinner size="lg" />
