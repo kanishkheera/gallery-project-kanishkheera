@@ -100,9 +100,14 @@ export default function PhotoViewer({
 
   const isFavorited = currentPhoto && favorites.has(currentPhoto.id);
 
-  // Reserve room for header (~52px) and, when open, the info panel (280px)
-  const HEADER_H = "52px";
+  // Responsive chrome sizes
+  const HEADER_H = { base: "44px", md: "52px" };
+  const HEADER_H_CSS = { base: "44px", md: "52px" }; // used inside calc()
   const INFO_W = 280;
+  const OUTER_PX = { base: "10px", md: "90px" };
+  const OUTER_PY = { base: "10px", md: "40px" };
+  const PANEL_MAX_W = { base: "100vw", md: "94vw" };
+  const PANEL_MAX_H = { base: "100dvh", md: "90vh" };
 
   return (
     <Box
@@ -112,13 +117,14 @@ export default function PhotoViewer({
       zIndex={9999}
       onClick={close}
     >
-      {/* Close — now top RIGHT, pinned to viewport */}
+      {/* Close — top right, pinned to viewport */}
       <IconButton
         aria-label="Close"
         position="fixed"
-        top="20px"
-        right="20px"
+        top={{ base: "12px", md: "20px" }}
+        right={{ base: "12px", md: "20px" }}
         zIndex={100}
+        size={{ base: "sm", md: "md" }}
         borderRadius="full"
         bg="whiteAlpha.900"
         color="black"
@@ -128,12 +134,13 @@ export default function PhotoViewer({
           close();
         }}
       >
-        <IoClose size={22} />
+        <IoClose size={20} />
       </IconButton>
 
-      {/* Prev — far left of the dark margin */}
+      {/* Prev — hidden on mobile */}
       <IconButton
         aria-label="Previous"
+        display={{ base: "none", md: "inline-flex" }}
         position="fixed"
         left="24px"
         top="50%"
@@ -152,9 +159,10 @@ export default function PhotoViewer({
         <IoChevronBack size={30} />
       </IconButton>
 
-      {/* Next — far right of the dark margin */}
+      {/* Next — hidden on mobile */}
       <IconButton
         aria-label="Next"
+        display={{ base: "none", md: "inline-flex" }}
         position="fixed"
         right="24px"
         top="50%"
@@ -179,33 +187,34 @@ export default function PhotoViewer({
         inset={0}
         justifyContent="center"
         alignItems="center"
-        px={{ base: "60px", md: "90px" }}
-        py="40px"
+        px={OUTER_PX}
+        py={OUTER_PY}
       >
-        {/* White panel — sizes itself to content (image), capped by viewport */}
+        {/* White panel — sizes itself to content, capped by viewport */}
         <Flex
           bg="white"
-          maxW="94vw"
-          maxH="90vh"
+          maxW={PANEL_MAX_W}
+          maxH={PANEL_MAX_H}
           w="fit-content"
           h="fit-content"
+          direction={{ base: "column", md: "row" }}
           overflow="hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Main column: header + image */}
-          <Flex direction="column" minW={0}>
+          <Flex direction="column" minW={0} minH={0}>
             {/* Header bar */}
             <Flex
               align="center"
               justify="space-between"
-              px={5}
-              py={3}
+              px={{ base: 3, md: 5 }}
+              py={{ base: 2, md: 3 }}
               h={HEADER_H}
               borderBottom="1px solid"
               borderColor="gray.200"
               flexShrink={0}
             >
-              <Flex align="center" gap={3} minW={0}>
+              <Flex align="center" gap={{ base: 2, md: 3 }} minW={0}>
                 <Avatar.Root size="sm">
                   <Avatar.Image
                     src={currentPhoto?.user?.profile_image?.medium}
@@ -224,7 +233,7 @@ export default function PhotoViewer({
                 </Text>
               </Flex>
 
-              <Flex align="center" gap={2} flexShrink={0}>
+              <Flex align="center" gap={{ base: 1, md: 2 }} flexShrink={0}>
                 <IconButton
                   aria-label="Favorite"
                   variant="ghost"
@@ -237,9 +246,9 @@ export default function PhotoViewer({
                   }}
                 >
                   {isFavorited ? (
-                    <IoHeart size={20} />
+                    <IoHeart size={18} />
                   ) : (
-                    <IoHeartOutline size={20} />
+                    <IoHeartOutline size={18} />
                   )}
                 </IconButton>
 
@@ -254,7 +263,7 @@ export default function PhotoViewer({
                     setShowInfo((s) => !s);
                   }}
                 >
-                  <IoInformationCircleOutline size={20} />
+                  <IoInformationCircleOutline size={18} />
                 </IconButton>
 
                 <IconButton
@@ -268,7 +277,7 @@ export default function PhotoViewer({
                     handleDownload(currentPhoto);
                   }}
                 >
-                  <IoDownloadOutline size={20} />
+                  <IoDownloadOutline size={18} />
                 </IconButton>
               </Flex>
             </Flex>
@@ -278,9 +287,20 @@ export default function PhotoViewer({
               ref={emblaRef}
               overflow="hidden"
               w="fit-content"
-              maxW="calc(94vw - var(--info-w, 0px))"
-              maxH={`calc(90vh - ${HEADER_H})`}
-              style={{ "--info-w": showInfo ? `${INFO_W}px` : "0px" }}
+              maxW={{
+                base: `calc(${PANEL_MAX_W.base} - ${
+                  parseInt(OUTER_PX.base) * 2
+                }px)`,
+                md: `calc(${PANEL_MAX_W.md} - ${
+                  showInfo ? `${INFO_W}px` : "0px"
+                })`,
+              }}
+              maxH={{
+                base: `calc(${PANEL_MAX_H.base} - ${HEADER_H_CSS.base} - ${
+                  parseInt(OUTER_PX.base) * 2
+                }px)`,
+                md: `calc(${PANEL_MAX_H.md} - ${HEADER_H_CSS.md})`,
+              }}
             >
               <Box display="flex" h="100%">
                 {photos.map((photo) => {
@@ -302,10 +322,8 @@ export default function PhotoViewer({
                         draggable={false}
                         userSelect="none"
                         display="block"
-                        maxW={`calc(94vw - ${
-                          showInfo ? `${INFO_W}px` : "0px"
-                        })`}
-                        maxH={`calc(90vh - ${HEADER_H})`}
+                        maxW="100%"
+                        maxH="100%"
                         w="auto"
                         h="auto"
                         style={{ aspectRatio: ratio }}
@@ -318,12 +336,14 @@ export default function PhotoViewer({
             </Box>
           </Flex>
 
-          {/* Info side panel */}
+          {/* Info side panel — full width sheet on mobile, side panel on desktop */}
           {showInfo && currentPhoto && (
             <Box
-              w={`${INFO_W}px`}
+              w={{ base: "100%", md: `${INFO_W}px` }}
+              maxH={{ base: "40vh", md: "none" }}
               flexShrink={0}
-              borderLeft="1px solid"
+              borderLeft={{ base: "none", md: "1px solid" }}
+              borderTop={{ base: "1px solid", md: "none" }}
               borderColor="gray.200"
               p={5}
               overflowY="auto"
