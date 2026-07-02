@@ -125,8 +125,8 @@ export default function PhotoViewer({
   const INFO_W = 280;
   const OUTER_PX = { base: "10px", md: "90px" };
   const OUTER_PY = { base: "10px", md: "40px" };
-  const PANEL_MAX_W = { base: "100vw", md: "94vw" };
-  const PANEL_MAX_H = { base: "100dvh", md: "90vh" };
+  const PANEL_MAX_W = { base: "100vw", md: "84vw" };
+  const PANEL_MAX_H = { base: "90dvh", md: "90vh" };
 
   return (
     <Box
@@ -389,7 +389,7 @@ export default function PhotoViewer({
                   currentPhoto.created_at
                     ? new Date(currentPhoto.created_at).toLocaleDateString(
                         undefined,
-                        { year: "numeric", month: "long", day: "numeric" }
+                        { year: "numeric", month: "long", day: "numeric" },
                       )
                     : "—"
                 }
