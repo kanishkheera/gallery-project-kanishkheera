@@ -1,16 +1,7 @@
-import {
-  Box,
-  IconButton,
-  Image,
-  Text,
-} from "@chakra-ui/react";
-import { useEffect } from "react";
+import { Box, IconButton, Image, Text } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import {
-  IoChevronBack,
-  IoChevronForward,
-  IoClose,
-} from "react-icons/io5";
+import { IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
 
 export default function PhotoViewer({
   photos,
@@ -18,9 +9,16 @@ export default function PhotoViewer({
   setSelectedIndex,
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
+    loop: false,
     duration: 25,
   });
+
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const close = () => {
+    setSelectedIndex(null);
+  };
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -30,33 +28,27 @@ export default function PhotoViewer({
     };
   }, []);
 
-  useEffect(() => {
-    if (!emblaApi) return;
+useEffect(() => {
+  if (!emblaApi) return;
 
-    emblaApi.scrollTo(selectedIndex, true);
+  emblaApi.scrollTo(selectedIndex, true);
 
-    const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap());
-    };
-
-    emblaApi.on("select", onSelect);
-
-    return () => emblaApi.off("select", onSelect);
-  }, [emblaApi]);
-
-  const previous = (e) => {
-    e.stopPropagation();
-    emblaApi?.scrollPrev();
+  const onSelect = () => {
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
   };
 
-  const next = (e) => {
-    e.stopPropagation();
-    emblaApi?.scrollNext();
-  };
+  onSelect();
 
-  const close = () => {
-    setSelectedIndex(null);
+  emblaApi.on("select", onSelect);
+  emblaApi.on("reInit", onSelect);
+
+  return () => {
+    emblaApi.off("select", onSelect);
+    emblaApi.off("reInit", onSelect);
   };
+}, [emblaApi]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -69,7 +61,9 @@ export default function PhotoViewer({
 
     window.addEventListener("keydown", handleKey);
 
-    return () => window.removeEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
   }, [emblaApi]);
 
   return (
@@ -90,6 +84,7 @@ export default function PhotoViewer({
         top="20px"
         right="20px"
         zIndex={100}
+        borderRadius="full"
         onClick={(e) => {
           e.stopPropagation();
           close();
@@ -107,7 +102,11 @@ export default function PhotoViewer({
         transform="translateY(-50%)"
         zIndex={100}
         borderRadius="full"
-        onClick={previous}
+        onClick={(e) => {
+          e.stopPropagation();
+          emblaApi?.scrollPrev();
+        }}
+        disabled={!canScrollPrev}
       >
         <IoChevronBack size={28} />
       </IconButton>
@@ -121,51 +120,43 @@ export default function PhotoViewer({
         transform="translateY(-50%)"
         zIndex={100}
         borderRadius="full"
-        onClick={next}
+        onClick={(e) => {
+          e.stopPropagation();
+          emblaApi?.scrollNext();
+        }}
       >
         <IoChevronForward size={28} />
       </IconButton>
 
-      {/* Prevent overlay close */}
-      <Box
-        onClick={(e) => e.stopPropagation()}
-        width="100%"
-      >
-        <Box
-          ref={emblaRef}
-          overflow="hidden"
-        >
-          <Box display="flex">
-            {photos.map((photo) => (
-              <Box
-                key={photo.id}
-                flex="0 0 100%"
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Box textAlign="center">
-                  <Image
-                    src={photo.urls.regular}
-                    maxH="82vh"
-                    maxW="90vw"
-                    objectFit="contain"
-                    borderRadius="lg"
-                    draggable={false}
-                    userSelect="none"
-                  />
+      {/* Slider */}
+      <Box ref={emblaRef} overflow="hidden" width="100%">
+        <Box display="flex">
+          {photos.map((photo) => (
+            <Box
+              key={photo.id}
+              flex="0 0 100%"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+            >
+              {/* Clicking the image closes the viewer */}
+              <Box textAlign="center">
+                <Image
+                  src={photo.urls.regular}
+                  maxH="82vh"
+                  maxW="90vw"
+                  objectFit="contain"
+                  borderRadius="lg"
+                  draggable={false}
+                  userSelect="none"
+                />
 
-                  <Text
-                    color="white"
-                    mt={4}
-                    fontWeight="600"
-                  >
-                    {photo.user.name}
-                  </Text>
-                </Box>
+                <Text color="white" mt={4} fontWeight="600">
+                  {photo.user.name}
+                </Text>
               </Box>
-            ))}
-          </Box>
+            </Box>
+          ))}
         </Box>
       </Box>
     </Box>
