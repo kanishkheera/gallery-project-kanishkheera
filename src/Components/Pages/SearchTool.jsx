@@ -10,31 +10,38 @@ import { useEffect, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
 import PhotoViewer from "../PhotoViewer";
+import { useSearchParams } from "react-router-dom";
 
-export default function AllPhotos() {
+export default function SearchTool() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [searchParams] = useSearchParams();
+
+  const query = searchParams.get("query");
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
   const fetchImages = async () => {
+    if (!query) return;
+
     setLoading(true);
 
     try {
-      const res = await axios.get("https://api.unsplash.com/photos", {
+      const res = await axios.get("https://api.unsplash.com/search/photos", {
         headers: {
           Authorization: `Client-ID ${API_KEY}`,
         },
         params: {
           page,
           per_page: 30,
+          query,
         },
       });
 
-      const photos = res.data;
+      const photos = res.data.results;
 
       if (page === 1) {
         setData(photos);
@@ -50,9 +57,15 @@ export default function AllPhotos() {
     setLoading(false);
   };
 
+  // Reset to page 1 whenever the query changes
+  useEffect(() => {
+    setPage(1);
+    setData([]);
+  }, [query]);
+
   useEffect(() => {
     fetchImages();
-  }, [page]);
+  }, [query, page]);
 
   useEffect(() => {
     const handleScroll = () => {

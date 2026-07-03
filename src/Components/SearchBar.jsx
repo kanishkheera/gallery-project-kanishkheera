@@ -8,23 +8,19 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { IoSearch } from "react-icons/io5";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const contactDialog = createOverlay((props) => {
   const { title, ...rest } = props;
-  const [name, setName] = useState('')
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const query = searchParams.get("query") || "";
-const page = Number(searchParams.get("page")) || 1;
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSearchParams({
-      query: name,
-      // page: 1,
-    });
+
+    if (!name.trim()) return;
+
+    navigate(`/search?query=${encodeURIComponent(name.trim())}`);
     props.onOpenChange?.({ open: false });
   };
 
@@ -66,9 +62,10 @@ const page = Number(searchParams.get("page")) || 1;
                       borderColor: "#8550D3",
                       boxShadow: "0 0 0 4px rgba(133,80,211,.15)",
                     }}
-                    onChange={(e) => setName(e.target.value)
-                    }
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                   />
+
                   <Button
                     type="submit"
                     w="full"
@@ -114,7 +111,6 @@ export default function SearchBar() {
       >
         <IoSearch size={25} cursor="pointer" />
       </Button>
-
       <contactDialog.Viewport />
     </>
   );
