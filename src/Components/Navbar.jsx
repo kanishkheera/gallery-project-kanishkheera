@@ -63,8 +63,7 @@ export default function Navbar() {
             <Heading
               flex={1}
               minW={0}
-              size={{ base: "lg", sm: "2xl" }}
-              pb={{ base: "3px", sm: "7px" }}
+              size={"2xl"}
               overflow="hidden"
               whiteSpace="nowrap"
               textOverflow="ellipsis"
