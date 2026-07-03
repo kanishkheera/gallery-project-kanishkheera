@@ -14,7 +14,7 @@ export default function SearchPhotos() {
   const [hasMore, setHasMore] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [searchParams] = useSearchParams();
-  const resolvedPhotoRef = useRef(null); // stores the last photo id we fetched
+  const resolvedPhotoRef = useRef(null);
 
   const query = searchParams.get("query");
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
@@ -39,7 +39,15 @@ export default function SearchPhotos() {
       const photos = res.data.results;
 
       if (page === 1) {
-        setData(photos);
+        // Merge-safe: preserve a directly-fetched shared photo instead of
+        // wiping it out when the fresh search page lands.
+        setData((prev) => {
+          const sharedId = searchParams.get("photo");
+          const sharedPhoto = prev.find(
+            (p) => p.id === sharedId && !photos.some((ph) => ph.id === sharedId)
+          );
+          return sharedPhoto ? [sharedPhoto, ...photos] : photos;
+        });
       } else {
         setData((prev) => [...prev, ...photos]);
       }
@@ -62,12 +70,11 @@ export default function SearchPhotos() {
     fetchImages();
   }, [query, page]);
 
-  // 👇 Effect #1 — fetch single photo for shared link
+  // Open the viewer directly from a shared/reloaded URL, regardless of
+  // whether the target photo is in the currently loaded search results.
   useEffect(() => {
     const photoId = searchParams.get("photo");
     if (!photoId || selectedIndex !== null) return;
-
-    if (resolvedPhotoRef.current === photoId) return;
 
     const existingIndex = data.findIndex((p) => p.id === photoId);
     if (existingIndex !== -1) {
@@ -75,6 +82,7 @@ export default function SearchPhotos() {
       return;
     }
 
+    if (resolvedPhotoRef.current === photoId) return;
     resolvedPhotoRef.current = photoId;
 
     let cancelled = false;
@@ -98,10 +106,8 @@ export default function SearchPhotos() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, data]);
 
-  // 👇 Effect #2 — NEW, goes right here, as its own separate useEffect
   useEffect(() => {
     if (!searchParams.get("photo")) {
       resolvedPhotoRef.current = null;
@@ -110,9 +116,18 @@ export default function SearchPhotos() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // ...unchanged
+      if (
+        window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 200 &&
+        !loading &&
+        hasMore
+      ) {
+        setPage((prev) => prev + 1);
+      }
     };
+
     window.addEventListener("scroll", handleScroll);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };

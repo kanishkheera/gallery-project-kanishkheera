@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import ImageCard from "../ImageCard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
 import PhotoViewer from "../PhotoViewer";
@@ -19,6 +19,7 @@ export default function AllPhotos() {
   const [hasMore, setHasMore] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [searchParams] = useSearchParams();
+  const resolvedPhotoRef = useRef(null);
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
@@ -39,7 +40,15 @@ export default function AllPhotos() {
       const photos = res.data;
 
       if (page === 1) {
-        setData(photos);
+        // Merge-safe: if a shared photo was already fetched directly and
+        // isn't part of this fresh page, keep it instead of wiping it out.
+        setData((prev) => {
+          const sharedId = searchParams.get("photo");
+          const sharedPhoto = prev.find(
+            (p) => p.id === sharedId && !photos.some((ph) => ph.id === sharedId)
+          );
+          return sharedPhoto ? [sharedPhoto, ...photos] : photos;
+        });
       } else {
         setData((prev) => [...prev, ...photos]);
       }
@@ -62,13 +71,18 @@ export default function AllPhotos() {
     const photoId = searchParams.get("photo");
     if (!photoId || selectedIndex !== null) return;
 
+    // Always check for an existing match first — this makes the effect
+    // self-correcting no matter which fetch (grid vs single) resolves first.
     const existingIndex = data.findIndex((p) => p.id === photoId);
     if (existingIndex !== -1) {
       setSelectedIndex(existingIndex);
       return;
     }
 
-    // Not loaded yet (or on a later page) — fetch it directly.
+    // Not loaded yet — fetch it directly, but only once per id.
+    if (resolvedPhotoRef.current === photoId) return;
+    resolvedPhotoRef.current = photoId;
+
     let cancelled = false;
 
     axios
@@ -90,8 +104,15 @@ export default function AllPhotos() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, data.length]);
+  }, [searchParams, data]);
+
+  // Reset the "already fetched" guard when the photo param is cleared,
+  // so a future different shared link isn't skipped.
+  useEffect(() => {
+    if (!searchParams.get("photo")) {
+      resolvedPhotoRef.current = null;
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => {
