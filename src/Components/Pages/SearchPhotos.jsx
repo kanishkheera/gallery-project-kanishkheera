@@ -12,7 +12,7 @@ export default function SearchPhotos() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState(null);
   const [searchParams] = useSearchParams();
   const resolvedPhotoRef = useRef(null);
 
@@ -44,7 +44,8 @@ export default function SearchPhotos() {
         setData((prev) => {
           const sharedId = searchParams.get("photo");
           const sharedPhoto = prev.find(
-            (p) => p.id === sharedId && !photos.some((ph) => ph.id === sharedId)
+            (p) =>
+              p.id === sharedId && !photos.some((ph) => ph.id === sharedId),
           );
           return sharedPhoto ? [sharedPhoto, ...photos] : photos;
         });
@@ -63,8 +64,13 @@ export default function SearchPhotos() {
   useEffect(() => {
     setPage(1);
     setData([]);
-    setSelectedIndex(null);
+    setSelectedPhotoId(null);
   }, [query]);
+
+  const selectedIndex =
+    selectedPhotoId === null
+      ? null
+      : data.findIndex((photo) => photo.id === selectedPhotoId);
 
   useEffect(() => {
     fetchImages();
@@ -74,11 +80,12 @@ export default function SearchPhotos() {
   // whether the target photo is in the currently loaded search results.
   useEffect(() => {
     const photoId = searchParams.get("photo");
-    if (!photoId || selectedIndex !== null) return;
+    if (!photoId || (selectedIndex !== null && selectedIndex !== -1)) return;
 
-    const existingIndex = data.findIndex((p) => p.id === photoId);
-    if (existingIndex !== -1) {
-      setSelectedIndex(existingIndex);
+    const existingPhoto = data.find((p) => p.id === photoId);
+
+    if (existingPhoto) {
+      setSelectedPhotoId(existingPhoto.id);
       return;
     }
 
@@ -99,7 +106,7 @@ export default function SearchPhotos() {
           if (prev.some((p) => p.id === photo.id)) return prev;
           return [photo, ...prev];
         });
-        setSelectedIndex(0);
+        setSelectedPhotoId(photo.id);
       })
       .catch((err) => console.log(err));
 
@@ -162,16 +169,16 @@ export default function SearchPhotos() {
           <ImageCard
             key={photo.id}
             src={photo.urls.regular}
-            onClick={() => setSelectedIndex(index)}
+            onClick={() => setSelectedPhotoId(photo.id)}
           />
         ))}
       </Masonry>
 
-      {selectedIndex !== null && (
+      {selectedIndex !== null && selectedIndex !== -1 && (
         <PhotoViewer
           photos={data}
           selectedIndex={selectedIndex}
-          setSelectedIndex={setSelectedIndex}
+          setSelectedPhotoId={setSelectedPhotoId}
           hasMore={hasMore}
           loadingMore={loading}
           onLoadMore={() => {

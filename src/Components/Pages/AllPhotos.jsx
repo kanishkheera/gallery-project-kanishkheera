@@ -1,9 +1,4 @@
-import {
-  Box,
-  Center,
-  Spinner,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { Box, Center, Spinner, useBreakpointValue } from "@chakra-ui/react";
 import axios from "axios";
 import ImageCard from "../ImageCard";
 import { useEffect, useRef, useState } from "react";
@@ -17,9 +12,14 @@ export default function AllPhotos() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState(null);
   const [searchParams] = useSearchParams();
   const resolvedPhotoRef = useRef(null);
+
+  const selectedIndex =
+    selectedPhotoId === null
+      ? null
+      : data.findIndex((photo) => photo.id === selectedPhotoId);
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
@@ -45,7 +45,8 @@ export default function AllPhotos() {
         setData((prev) => {
           const sharedId = searchParams.get("photo");
           const sharedPhoto = prev.find(
-            (p) => p.id === sharedId && !photos.some((ph) => ph.id === sharedId)
+            (p) =>
+              p.id === sharedId && !photos.some((ph) => ph.id === sharedId),
           );
           return sharedPhoto ? [sharedPhoto, ...photos] : photos;
         });
@@ -73,9 +74,8 @@ export default function AllPhotos() {
 
     // Always check for an existing match first — this makes the effect
     // self-correcting no matter which fetch (grid vs single) resolves first.
-    const existingIndex = data.findIndex((p) => p.id === photoId);
-    if (existingIndex !== -1) {
-      setSelectedIndex(existingIndex);
+    if (data.some((p) => p.id === photoId)) {
+      setSelectedPhotoId(photoId);
       return;
     }
 
@@ -97,7 +97,8 @@ export default function AllPhotos() {
           if (prev.some((p) => p.id === photo.id)) return prev;
           return [photo, ...prev];
         });
-        setSelectedIndex(0);
+
+        setSelectedPhotoId(photo.id);
       })
       .catch((err) => console.log(err));
 
@@ -162,16 +163,17 @@ export default function AllPhotos() {
           <ImageCard
             key={photo.id}
             src={photo.urls.regular}
-            onClick={() => setSelectedIndex(index)}
+            onClick={() => setSelectedPhotoId(photo.id)}
           />
         ))}
       </Masonry>
 
-      {selectedIndex !== null && (
+      {selectedIndex !== -1 && selectedIndex !== null && (
         <PhotoViewer
           photos={data}
           selectedIndex={selectedIndex}
-          setSelectedIndex={setSelectedIndex}
+          selectedPhotoId={selectedPhotoId}
+          setSelectedPhotoId={setSelectedPhotoId}
           hasMore={hasMore}
           loadingMore={loading}
           onLoadMore={() => {
