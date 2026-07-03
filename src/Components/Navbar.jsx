@@ -16,7 +16,7 @@ import { useState } from "react";
 import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
 import SearchBar from "./SearchBar";
-import FiltersBar from './FiltersBar'
+import FiltersBar from "./FiltersBar";
 
 const menuItems = [
   { label: "All Photos", path: "/" },
@@ -46,27 +46,36 @@ export default function Navbar() {
         WebkitBackdropFilter="blur(20px)"
         border="1px solid rgba(255,255,255,0.2)"
         boxShadow="sm"
-        px={{base:'2', lg:"4"}}
+        px={{ base: "2", lg: "4" }}
       >
         <Flex h="70px" align="center" justify="space-between">
-          <HStack gap={3}>
+          <HStack gap={1} align="center" flex={1} minW={0}>
             <IconButton
               display={{ base: "flex", xl: "none" }}
               variant="ghost"
               aria-label="Open menu"
               onClick={() => setOpen(true)}
+              flexShrink={0}
             >
               <HiOutlineMenu />
             </IconButton>
-            <VStack gap={0} alignItems={"flex-start"}>
-              <Heading size="2xl" >{currentPage}</Heading>
-              <Text>Total Items</Text>
-            </VStack>
+
+            <Heading
+              flex={1}
+              minW={0}
+              size={{ base: "lg", sm: "2xl" }}
+              pb={{ base: "3px", sm: "7px" }}
+              overflow="hidden"
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+            >
+              {currentPage}
+            </Heading>
           </HStack>
 
-          <HStack gap={6} mr={2}>
-            <SearchBar/>
-            <FiltersBar/>
+          <HStack gap={6} mr={2} flexShrink={0}>
+            <SearchBar />
+            <FiltersBar />
           </HStack>
         </Flex>
       </Box>

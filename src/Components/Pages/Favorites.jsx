@@ -1,3 +1,5 @@
 export default function Favorites(){
-    return<></>
+    return<>
+    
+    </>
 }
