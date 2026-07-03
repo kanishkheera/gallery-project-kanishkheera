@@ -59,7 +59,7 @@ export default function Navbar() {
               <HiOutlineMenu />
             </IconButton>
             <VStack gap={0} alignItems={"flex-start"}>
-              <Heading size="2xl">{currentPage}</Heading>
+              <Heading size="2xl" >{currentPage}</Heading>
               <Text>Total Items</Text>
             </VStack>
           </HStack>
