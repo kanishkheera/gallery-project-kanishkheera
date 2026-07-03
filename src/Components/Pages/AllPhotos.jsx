@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import "../Styles/masonry.css";
 import Masonry from "react-masonry-css";
 import PhotoViewer from "../PhotoViewer";
+import { useSearchParams } from "react-router-dom";
 
 export default function AllPhotos() {
   const [page, setPage] = useState(1);
@@ -17,6 +18,7 @@ export default function AllPhotos() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [searchParams] = useSearchParams();
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
@@ -53,6 +55,43 @@ export default function AllPhotos() {
   useEffect(() => {
     fetchImages();
   }, [page]);
+
+  // Open the viewer directly from a shared/reloaded URL, regardless of
+  // whether the target photo is in the currently loaded grid pages.
+  useEffect(() => {
+    const photoId = searchParams.get("photo");
+    if (!photoId || selectedIndex !== null) return;
+
+    const existingIndex = data.findIndex((p) => p.id === photoId);
+    if (existingIndex !== -1) {
+      setSelectedIndex(existingIndex);
+      return;
+    }
+
+    // Not loaded yet (or on a later page) — fetch it directly.
+    let cancelled = false;
+
+    axios
+      .get(`https://api.unsplash.com/photos/${photoId}`, {
+        headers: { Authorization: `Client-ID ${API_KEY}` },
+      })
+      .then((res) => {
+        if (cancelled) return;
+        const photo = res.data;
+
+        setData((prev) => {
+          if (prev.some((p) => p.id === photo.id)) return prev;
+          return [photo, ...prev];
+        });
+        setSelectedIndex(0);
+      })
+      .catch((err) => console.log(err));
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, data.length]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -112,6 +151,11 @@ export default function AllPhotos() {
           photos={data}
           selectedIndex={selectedIndex}
           setSelectedIndex={setSelectedIndex}
+          hasMore={hasMore}
+          loadingMore={loading}
+          onLoadMore={() => {
+            if (!loading && hasMore) setPage((prev) => prev + 1);
+          }}
         />
       )}
 

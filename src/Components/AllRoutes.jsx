@@ -6,7 +6,7 @@ import Favorites from "./Pages/Favorites";
 import RecentlyAdded from "./Pages/RecentlyAdded";
 import DeletedItems from "./Pages/DeletedItems";
 import Settings from "./Pages/Settings";
-import SearchTool from "./Pages/SearchTool";
+import SearchPhotos from "./Pages/SearchPhotos";
 
 export default function AllRoutes() {
   return (
@@ -17,7 +17,7 @@ export default function AllRoutes() {
       <Route path="/recent" element={<RecentlyAdded />} />
       <Route path="/trash" element={<DeletedItems />} />
       <Route path="/settings" element={<Settings />} />
-      <Route path="/search" element={<SearchTool />} />
+      <Route path="/search" element={<SearchPhotos />} />
     </Routes>
   );
 }

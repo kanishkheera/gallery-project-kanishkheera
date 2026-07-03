@@ -1,6 +1,7 @@
-import { Box, IconButton, Image, Text, Flex, Avatar } from "@chakra-ui/react";
+import { Box, IconButton, Image, Text, Flex, Avatar, Spinner } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import { useSearchParams } from "react-router-dom";
 import {
   IoChevronBack,
   IoChevronForward,
@@ -15,6 +16,9 @@ export default function PhotoViewer({
   photos,
   selectedIndex,
   setSelectedIndex,
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
@@ -26,9 +30,15 @@ export default function PhotoViewer({
   const [favorites, setFavorites] = useState(new Set());
   const [showInfo, setShowInfo] = useState(false);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const prevIndexRef = useRef(selectedIndex);
+  const pendingAdvanceRef = useRef(false);
 
   const close = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("photo");
+    setSearchParams(params, { replace: true });
     setSelectedIndex(null);
   };
 
@@ -49,8 +59,6 @@ export default function PhotoViewer({
       setCanScrollPrev(emblaApi.canScrollPrev());
       setCanScrollNext(emblaApi.canScrollNext());
 
-      // Only close the info panel if the slide actually changed
-      // (this listener also fires on reInit, e.g. when the panel resizes)
       if (prevIndexRef.current !== newIndex) {
         setShowInfo(false);
         prevIndexRef.current = newIndex;
@@ -72,28 +80,67 @@ export default function PhotoViewer({
   }, [emblaApi]);
 
   // Re-measure slide sizes whenever the info panel opens/closes
-  // (its width change resizes the image container)
   useEffect(() => {
     if (!emblaApi) return;
-    // let layout settle first
     const id = requestAnimationFrame(() => emblaApi.reInit());
     return () => cancelAnimationFrame(id);
   }, [showInfo, emblaApi]);
 
+  // Re-init Embla whenever the photos array grows (new page appended),
+  // and if the user was waiting to advance into the newly loaded slide, do it.
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.reInit();
+
+    if (pendingAdvanceRef.current && emblaApi.canScrollNext()) {
+      emblaApi.scrollNext();
+      pendingAdvanceRef.current = false;
+    }
+  }, [photos.length, emblaApi]);
+
+  const goNext = () => {
+    if (!emblaApi) return;
+
+    if (emblaApi.canScrollNext()) {
+      emblaApi.scrollNext();
+      return;
+    }
+
+    // At the last loaded slide — pull in the next page instead of dead-ending.
+    if (hasMore && !loadingMore) {
+      pendingAdvanceRef.current = true;
+      onLoadMore?.();
+    }
+  };
+
+  const goPrev = () => {
+    emblaApi?.scrollPrev();
+  };
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") emblaApi?.scrollPrev();
-      if (e.key === "ArrowRight") emblaApi?.scrollNext();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
     };
 
     window.addEventListener("keydown", handleKey);
     return () => {
       window.removeEventListener("keydown", handleKey);
     };
-  }, [emblaApi]);
+  }, [emblaApi, hasMore, loadingMore]);
 
   const currentPhoto = photos[selectedIndex];
+
+  // Keep the URL in sync with whichever photo is currently showing
+  useEffect(() => {
+    if (!currentPhoto) return;
+    const params = new URLSearchParams(searchParams);
+    if (params.get("photo") !== currentPhoto.id) {
+      params.set("photo", currentPhoto.id);
+      setSearchParams(params, { replace: true });
+    }
+  }, [currentPhoto?.id]);
 
   const toggleFavorite = (photoId) => {
     setFavorites((prev) => {
@@ -119,6 +166,8 @@ export default function PhotoViewer({
   };
 
   const isFavorited = currentPhoto && favorites.has(currentPhoto.id);
+  const isLastSlide = !canScrollNext;
+  const nextDisabled = isLastSlide && !hasMore && !loadingMore;
 
   const HEADER_H = { base: "44px", md: "52px" };
   const HEADER_H_CSS = { base: "44px", md: "52px" };
@@ -171,7 +220,7 @@ export default function PhotoViewer({
         _hover={{ bg: "whiteAlpha.200", color: "white" }}
         onClick={(e) => {
           e.stopPropagation();
-          emblaApi?.scrollPrev();
+          goPrev();
         }}
         disabled={!canScrollPrev}
       >
@@ -193,11 +242,15 @@ export default function PhotoViewer({
         _hover={{ bg: "whiteAlpha.200", color: "white" }}
         onClick={(e) => {
           e.stopPropagation();
-          emblaApi?.scrollNext();
+          goNext();
         }}
-        disabled={!canScrollNext}
+        disabled={nextDisabled}
       >
-        <IoChevronForward size={30} />
+        {isLastSlide && loadingMore ? (
+          <Spinner size="sm" />
+        ) : (
+          <IoChevronForward size={30} />
+        )}
       </IconButton>
 
       {/* Center wrapper */}
