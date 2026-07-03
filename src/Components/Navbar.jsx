@@ -16,6 +16,7 @@ import { useState } from "react";
 import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
 import SearchBar from "./SearchBar";
+import FiltersBar from './FiltersBar'
 
 const menuItems = [
   { label: "All Photos", path: "/" },
@@ -65,7 +66,7 @@ export default function Navbar() {
 
           <HStack gap={6} mr={2}>
             <SearchBar/>
-            <LuFilter size={25} cursor="pointer" />
+            <FiltersBar/>
           </HStack>
         </Flex>
       </Box>

@@ -10,7 +10,7 @@ import { useState } from "react";
 import { IoSearch } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-const contactDialog = createOverlay((props) => {
+const searchDialog = createOverlay((props) => {
   const { title, ...rest } = props;
   const [name, setName] = useState("");
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ export default function SearchBar() {
   return (
     <>
       <Button
-        onClick={() => contactDialog.open("form", { title: "Search Image" })}
+        onClick={() => searchDialog.open("form", { title: "Search Image" })}
         borderRadius="full"
         bg="#F4EEFF"
         color="#8550D3"
@@ -111,7 +111,7 @@ export default function SearchBar() {
       >
         <IoSearch size={25} cursor="pointer" />
       </Button>
-      <contactDialog.Viewport />
+      <searchDialog.Viewport />
     </>
   );
 }
