@@ -23,11 +23,12 @@ import {
 } from "react-icons/io5";
 
 export default function PhotoViewer({
-   photos,
+  photos,
   selectedIndex,
   selectedPhotoId,
   setSelectedPhotoId,
   onLoadMore,
+  onClose,
   hasMore = false,
   loadingMore = false,
 }) {
@@ -48,12 +49,11 @@ export default function PhotoViewer({
   const prevIndexRef = useRef(selectedIndex);
   const pendingAdvanceRef = useRef(false);
 
-  const close = () => {
-    const params = new URLSearchParams(searchParams);
-    params.delete("photo");
-    setSearchParams(params, { replace: true });
-    setSelectedPhotoId(null);
-  };
+  // NOTE: closing is now fully owned by the parent (usePhotoGallery's
+  // closeViewer, passed in as `onClose`). This component no longer deletes
+  // the `photo` URL param itself on close — it only ever *sets* it when the
+  // slide changes (see effect below) — so there's a single writer for
+  // "close" and no race between two things touching the URL at once.
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -128,7 +128,7 @@ export default function PhotoViewer({
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") goPrev();
       if (e.key === "ArrowRight") goNext();
     };
@@ -137,10 +137,12 @@ export default function PhotoViewer({
     return () => {
       window.removeEventListener("keydown", handleKey);
     };
-  }, [emblaApi, hasMore, loadingMore]);
+  }, [emblaApi, hasMore, loadingMore, onClose]);
 
   const currentPhoto = photos[selectedIndex];
 
+  // Only ever SETS the param to reflect the current slide — never deletes it.
+  // Deleting on close is handled solely by `onClose` (closeViewer) upstream.
   useEffect(() => {
     if (!currentPhoto) return;
     const params = new URLSearchParams(searchParams);
@@ -194,9 +196,6 @@ export default function PhotoViewer({
   const OUTER_PX = { base: "10px", md: "60px" };
   const OUTER_PY = { base: "10px", md: "40px" };
 
-  // Single source of truth for the media box size — used identically by
-  // both the skeleton placeholder and the real Embla slider, so they can
-  // never mismatch. Shrinks when the info panel is open on desktop.
   const mediaSize = {
     w: {
       base: "90vw",
@@ -221,7 +220,7 @@ export default function PhotoViewer({
       inset={0}
       bg="rgba(0,0,0,.85)"
       zIndex={9999}
-      onClick={close}
+      onClick={onClose}
     >
       {/* Close */}
       <IconButton
@@ -237,7 +236,7 @@ export default function PhotoViewer({
         _hover={{ bg: "white" }}
         onClick={(e) => {
           e.stopPropagation();
-          close();
+          onClose();
         }}
       >
         <IoClose size={20} />

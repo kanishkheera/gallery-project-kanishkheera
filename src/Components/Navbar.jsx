@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { LuFilter } from "react-icons/lu";
 import { IconButton } from "@chakra-ui/react";
@@ -25,15 +25,22 @@ const menuItems = [
   { label: "Recently Added", path: "/recent" },
   { label: "Deleted Items", path: "/trash" },
   { label: "Settings", path: "/settings" },
+  { label: "Buddha", path: "/albums/:name" },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+
   const location = useLocation();
 
-  const currentPage =
-    menuItems.find((item) => item.path === location.pathname)?.label ||
-    "Gallery";
+  const albumPath = location.pathname.startsWith("/albums/")
+    ? location.pathname.split("/")[2]
+    : null;
+
+  const currentPage = albumPath
+    ? albumPath.charAt(0).toUpperCase() + albumPath.slice(1)
+    : menuItems.find((item) => item.path === location.pathname)?.label ||
+      "Gallery";
 
   return (
     <>

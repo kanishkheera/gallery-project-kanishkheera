@@ -1,32 +1,13 @@
-import { Box, Center, Spinner, useBreakpointValue } from "@chakra-ui/react";
 import axios from "axios";
-import ImageCard from "../ImageCard";
-import { useEffect, useRef, useState } from "react";
-import "../Styles/masonry.css";
-import Masonry from "react-masonry-css";
-import PhotoViewer from "../PhotoViewer";
-import { useSearchParams } from "react-router-dom";
+import { useCallback } from "react";
+import { PhotoGallery } from "../PhotoGallery";
+import usePhotoGallery from "../hooks/usePhotoGallery";
 
 export default function AllPhotos() {
-  const [page, setPage] = useState(1);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [selectedPhotoId, setSelectedPhotoId] = useState(null);
-  const [searchParams] = useSearchParams();
-  const resolvedPhotoRef = useRef(null);
-
-  const selectedIndex =
-    selectedPhotoId === null
-      ? null
-      : data.findIndex((photo) => photo.id === selectedPhotoId);
-
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
-  const fetchImages = async () => {
-    setLoading(true);
-
-    try {
+  const fetchPhotos = useCallback(
+    async (page) => {
       const res = await axios.get("https://api.unsplash.com/photos", {
         headers: {
           Authorization: `Client-ID ${API_KEY}`,
@@ -37,156 +18,12 @@ export default function AllPhotos() {
         },
       });
 
-      const photos = res.data;
-
-      if (page === 1) {
-        // Merge-safe: if a shared photo was already fetched directly and
-        // isn't part of this fresh page, keep it instead of wiping it out.
-        setData((prev) => {
-          const sharedId = searchParams.get("photo");
-          const sharedPhoto = prev.find(
-            (p) =>
-              p.id === sharedId && !photos.some((ph) => ph.id === sharedId),
-          );
-          return sharedPhoto ? [sharedPhoto, ...photos] : photos;
-        });
-      } else {
-        setData((prev) => [...prev, ...photos]);
-      }
-
-      setHasMore(photos.length > 0);
-    } catch (err) {
-      console.log(err);
-    }
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchImages();
-  }, [page]);
-
-  // Open the viewer directly from a shared/reloaded URL, regardless of
-  // whether the target photo is in the currently loaded grid pages.
-  useEffect(() => {
-    const photoId = searchParams.get("photo");
-    if (!photoId || selectedIndex !== null) return;
-
-    // Always check for an existing match first — this makes the effect
-    // self-correcting no matter which fetch (grid vs single) resolves first.
-    if (data.some((p) => p.id === photoId)) {
-      setSelectedPhotoId(photoId);
-      return;
-    }
-
-    // Not loaded yet — fetch it directly, but only once per id.
-    if (resolvedPhotoRef.current === photoId) return;
-    resolvedPhotoRef.current = photoId;
-
-    let cancelled = false;
-
-    axios
-      .get(`https://api.unsplash.com/photos/${photoId}`, {
-        headers: { Authorization: `Client-ID ${API_KEY}` },
-      })
-      .then((res) => {
-        if (cancelled) return;
-        const photo = res.data;
-
-        setData((prev) => {
-          if (prev.some((p) => p.id === photo.id)) return prev;
-          return [photo, ...prev];
-        });
-
-        setSelectedPhotoId(photo.id);
-      })
-      .catch((err) => console.log(err));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [searchParams, data]);
-
-  // Reset the "already fetched" guard when the photo param is cleared,
-  // so a future different shared link isn't skipped.
-  useEffect(() => {
-    if (!searchParams.get("photo")) {
-      resolvedPhotoRef.current = null;
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-          document.documentElement.scrollHeight - 200 &&
-        !loading &&
-        hasMore
-      ) {
-        setPage((prev) => prev + 1);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [loading, hasMore]);
-
-  const breakpointColumnsObj = {
-    default: 5,
-    1400: 4,
-    768: 3,
-    500: 2,
-  };
-
-  const gap = useBreakpointValue({
-    base: "8px",
-    md: "12px",
-    lg: "16px",
-    xl: "20px",
-  });
-
-  return (
-    <Box
-      style={{
-        "--gallery-gap": gap,
-      }}
-    >
-      <Masonry
-        breakpointCols={breakpointColumnsObj}
-        className="my-masonry-grid"
-        columnClassName="my-masonry-grid_column"
-      >
-        {data.map((photo, index) => (
-          <ImageCard
-            key={photo.id}
-            src={photo.urls.regular}
-            onClick={() => setSelectedPhotoId(photo.id)}
-          />
-        ))}
-      </Masonry>
-
-      {selectedIndex !== -1 && selectedIndex !== null && (
-        <PhotoViewer
-          photos={data}
-          selectedIndex={selectedIndex}
-          selectedPhotoId={selectedPhotoId}
-          setSelectedPhotoId={setSelectedPhotoId}
-          hasMore={hasMore}
-          loadingMore={loading}
-          onLoadMore={() => {
-            if (!loading && hasMore) setPage((prev) => prev + 1);
-          }}
-        />
-      )}
-
-      {loading && (
-        <Center py={8}>
-          <Spinner size="lg" />
-        </Center>
-      )}
-    </Box>
+      return res.data;
+    },
+    [API_KEY]
   );
+
+  const gallery = usePhotoGallery(fetchPhotos);
+
+  return <PhotoGallery {...gallery} />;
 }

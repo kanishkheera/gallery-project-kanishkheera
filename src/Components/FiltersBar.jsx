@@ -17,15 +17,17 @@ import {
   LuSquare,
   LuRectangleVertical,
   LuRectangleHorizontal,
-  LuCheck,
+  LuCheck
 } from "react-icons/lu";
+import { MdOutlineChecklistRtl } from "react-icons/md";
+
 
 const FILTER_OPTIONS = [
+  { value: "all", label: "Default", icon: MdOutlineChecklistRtl },
   { value: "square", label: "Square", icon: LuSquare },
   { value: "portrait", label: "Portrait", icon: LuRectangleVertical },
   { value: "landscape", label: "Landscape", icon: LuRectangleHorizontal },
   { value: "wide", label: "Wide", icon: LuRectangleHorizontal },
-  { value: "all", label: "All sizes", icon: LuFilter },
 ];
 
 const CLOSE_DELAY = 150;
