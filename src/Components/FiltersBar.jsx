@@ -20,10 +20,10 @@ import {
   LuCheck
 } from "react-icons/lu";
 import { MdOutlineChecklistRtl } from "react-icons/md";
-
+import { useFilter } from "./context/FilterContext";
 
 const FILTER_OPTIONS = [
-  { value: "all", label: "Default", icon: MdOutlineChecklistRtl },
+  { value: "all", label: "Default Size", icon: MdOutlineChecklistRtl },
   { value: "square", label: "Square", icon: LuSquare },
   { value: "portrait", label: "Portrait", icon: LuRectangleVertical },
   { value: "landscape", label: "Landscape", icon: LuRectangleHorizontal },
@@ -34,7 +34,7 @@ const CLOSE_DELAY = 150;
 
 const FiltersBar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const { selected, setSelected } = useFilter();
   const closeTimer = useRef(null);
 
   const clearCloseTimer = () => {
@@ -60,14 +60,11 @@ const FiltersBar = () => {
       top={0}
       zIndex={20}
       py={2}
-    //   bg="white"
       w="fit-content"
     >
       <Menu.Root
         open={isOpen}
         onOpenChange={(e) => setIsOpen(e.open)}
-        // keeps the menu anchored to the viewport, not the scroll container,
-        // so it doesn't jump/shift position while the grid scrolls beneath it
         positioning={{ placement: "bottom-start", strategy: "fixed", gutter: 8 }}
       >
         <Menu.Trigger asChild>

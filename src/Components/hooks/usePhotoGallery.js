@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useFilter } from "../context/FilterContext";
+import { filterByOrientation } from "../utils/orientation";
 
 export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   const [page, setPage] = useState(1);
@@ -8,12 +10,15 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedPhotoId, setSelectedPhotoId] = useState(null);
+  const { selected } = useFilter();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const resolvedPhotoRef = useRef(null);
   const closingRef = useRef(false); // guards against the URL-sync effect reopening the viewer
 
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+
+  const filteredPhotos = filterByOrientation(photos, selected);
 
   const selectedIndex =
     selectedPhotoId === null
@@ -165,7 +170,7 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   }, [setSearchParams]);
 
   return {
-    photos,
+    photos: filteredPhotos,
     loading,
     hasMore,
     selectedIndex,
