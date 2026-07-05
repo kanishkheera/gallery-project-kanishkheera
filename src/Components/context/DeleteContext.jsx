@@ -33,9 +33,13 @@ export const DeletedProvider = ({ children }) => {
     setDeleted((prev) => prev.filter((p) => p.id !== photoId));
   };
 
+  const permanentDeleteMany = (photoIds) => {
+  setDeleted((prev) => prev.filter((p) => !photoIds.includes(p.id)));
+};
+
   return (
     <DeletedContext.Provider
-      value={{ deleted, isDeleted, deletePhoto, restorePhoto, permanentDelete }}
+      value={{ deleted, isDeleted, deletePhoto, restorePhoto, permanentDelete, permanentDeleteMany }}
     >
       {children}
     </DeletedContext.Provider>
@@ -52,6 +56,7 @@ export const useDeleted = () => {
       deletePhoto: () => {},
       restorePhoto: () => {},
       permanentDelete: () => {},
+      permanentDeleteMany: () => {}
     };
   }
   return ctx;
