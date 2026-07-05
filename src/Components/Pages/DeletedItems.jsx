@@ -1,21 +1,43 @@
-import { Grid, Box, Image, Text, Center, IconButton, Flex } from "@chakra-ui/react";
+import { Box, Center, Text, IconButton, Flex, Grid, Image, useBreakpointValue } from "@chakra-ui/react";
 import { IoRefreshOutline, IoTrashOutline } from "react-icons/io5";
 import { useDeleted } from "../context/DeleteContext";
+import { useFilter } from "../context/FilterContext";
+import { filterByOrientation } from "../utils/orientation";
 
 export default function DeletedItems() {
   const { deleted, restorePhoto, permanentDelete } = useDeleted();
+  const { selected } = useFilter();
 
-  if (deleted.length === 0) {
+  const photos = filterByOrientation(deleted, selected);
+
+  const columns = useBreakpointValue({
+    base: 2,
+    sm: 3,
+    md: 4,
+    xl: 5,
+    "2xl": 6,
+  });
+
+  const gap = useBreakpointValue({
+    base: "8px",
+    md: "12px",
+    lg: "16px",
+    xl: "20px",
+  });
+
+  if (photos.length === 0) {
     return (
       <Center h="60vh">
-        <Text color="gray.500">Trash is empty.</Text>
+        <Text color="gray.500">
+          {deleted.length === 0 ? "Trash is empty." : "No items match this filter."}
+        </Text>
       </Center>
     );
   }
 
   return (
-    <Grid templateColumns="repeat(auto-fill, minmax(220px, 1fr))" gap={4}>
-      {deleted.map((photo) => (
+    <Grid templateColumns={`repeat(${columns}, 1fr)`} gap={gap} w="100%">
+      {photos.map((photo) => (
         <Box key={photo.id} borderRadius="lg" overflow="hidden" boxShadow="sm" position="relative">
           <Image src={photo.urls.small} w="100%" h="220px" objectFit="cover" opacity={0.6} />
 
