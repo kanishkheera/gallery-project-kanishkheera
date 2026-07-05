@@ -20,7 +20,10 @@ import {
   IoHeartOutline,
   IoDownloadOutline,
   IoInformationCircleOutline,
+  IoTrashOutline,
 } from "react-icons/io5";
+import { useFavorites } from "./context/FavoritesContext";
+import { useDeleted } from "./context/DeleteContext";
 
 export default function PhotoViewer({
   photos,
@@ -39,15 +42,24 @@ export default function PhotoViewer({
 
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
-  const [favorites, setFavorites] = useState(new Set());
   const [showInfo, setShowInfo] = useState(false);
   const [ready, setReady] = useState(false);
   const [loadedIds, setLoadedIds] = useState(() => new Set());
+  const { isFavorited: checkFavorited, toggleFavorite: toggleFav } =
+    useFavorites();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const prevIndexRef = useRef(selectedIndex);
   const pendingAdvanceRef = useRef(false);
+
+  const { deletePhoto } = useDeleted();
+
+  const handleDelete = () => {
+    if (!currentPhoto) return;
+    deletePhoto(currentPhoto);
+    goNext(); // move to next photo since this one is now hidden
+  };
 
   // NOTE: closing is now fully owned by the parent (usePhotoGallery's
   // closeViewer, passed in as `onClose`). This component no longer deletes
@@ -152,17 +164,7 @@ export default function PhotoViewer({
     }
   }, [currentPhoto?.id]);
 
-  const toggleFavorite = (photoId) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(photoId)) {
-        next.delete(photoId);
-      } else {
-        next.add(photoId);
-      }
-      return next;
-    });
-  };
+  const toggleFavorite = () => toggleFav(currentPhoto);
 
   const handleImageLoad = (photoId) => {
     setLoadedIds((prev) => {
@@ -173,18 +175,26 @@ export default function PhotoViewer({
     });
   };
 
-  const handleDownload = (photo) => {
-    const link = document.createElement("a");
-    link.href = photo.links?.download || photo.urls.full;
-    link.download = `${photo.id}.jpg`;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (photo) => {
+    try {
+      const response = await fetch(photo.urls.full);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${photo.id}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
   };
 
-  const isFavorited = currentPhoto && favorites.has(currentPhoto.id);
+  const isFavorited = currentPhoto && checkFavorited(currentPhoto.id);
   const isLastSlide = !canScrollNext;
   const nextDisabled = isLastSlide && !hasMore && !loadingMore;
 
@@ -361,7 +371,7 @@ export default function PhotoViewer({
                       color={isFavorited ? "red.500" : "gray.600"}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleFavorite(currentPhoto.id);
+                        toggleFavorite();
                       }}
                     >
                       {isFavorited ? (
@@ -400,9 +410,23 @@ export default function PhotoViewer({
                     >
                       <IoDownloadOutline size={18} />
                     </IconButton>
+                    <IconButton
+                      aria-label="Delete"
+                      variant="ghost"
+                      size="sm"
+                      borderRadius="full"
+                      color="gray.600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete();
+                      }}
+                    >
+                      <IoTrashOutline size={18} />
+                    </IconButton>
                   </>
                 ) : (
                   <>
+                    <SkeletonCircle size="8" />
                     <SkeletonCircle size="8" />
                     <SkeletonCircle size="8" />
                     <SkeletonCircle size="8" />
@@ -412,9 +436,21 @@ export default function PhotoViewer({
             </Flex>
 
             {/* Media area — fixed responsive box shared by skeleton + slider */}
-            <Box position="relative" w={mediaSize.w} h={mediaSize.h} maxW={mediaSize.maxW} maxH={mediaSize.maxH}>
+            <Box
+              position="relative"
+              w={mediaSize.w}
+              h={mediaSize.h}
+              maxW={mediaSize.maxW}
+              maxH={mediaSize.maxH}
+            >
               {!isCurrentReady && (
-                <Skeleton position="absolute" inset={0} w="100%" h="100%" zIndex={2} />
+                <Skeleton
+                  position="absolute"
+                  inset={0}
+                  w="100%"
+                  h="100%"
+                  zIndex={2}
+                />
               )}
 
               <Box
@@ -472,11 +508,17 @@ export default function PhotoViewer({
                   </Text>
 
                   {currentPhoto.description && (
-                    <InfoRow label="Description" value={currentPhoto.description} />
+                    <InfoRow
+                      label="Description"
+                      value={currentPhoto.description}
+                    />
                   )}
 
                   {currentPhoto.alt_description && (
-                    <InfoRow label="Alt description" value={currentPhoto.alt_description} />
+                    <InfoRow
+                      label="Alt description"
+                      value={currentPhoto.alt_description}
+                    />
                   )}
 
                   <InfoRow
@@ -501,7 +543,10 @@ export default function PhotoViewer({
                   />
 
                   {currentPhoto.location?.name && (
-                    <InfoRow label="Location" value={currentPhoto.location.name} />
+                    <InfoRow
+                      label="Location"
+                      value={currentPhoto.location.name}
+                    />
                   )}
 
                   {currentPhoto.exif?.make && (
@@ -513,29 +558,62 @@ export default function PhotoViewer({
 
                   <Flex gap={5} mt={4}>
                     <Box>
-                      <Text fontSize="xs" color="gray.500">Likes</Text>
-                      <Text fontWeight="600" color="gray.800">{currentPhoto.likes ?? "—"}</Text>
+                      <Text fontSize="xs" color="gray.500">
+                        Likes
+                      </Text>
+                      <Text fontWeight="600" color="gray.800">
+                        {currentPhoto.likes ?? "—"}
+                      </Text>
                     </Box>
                     <Box>
-                      <Text fontSize="xs" color="gray.500">Downloads</Text>
-                      <Text fontWeight="600" color="gray.800">{currentPhoto.downloads ?? "—"}</Text>
+                      <Text fontSize="xs" color="gray.500">
+                        Downloads
+                      </Text>
+                      <Text fontWeight="600" color="gray.800">
+                        {currentPhoto.downloads ?? "—"}
+                      </Text>
                     </Box>
                   </Flex>
                 </>
               ) : (
                 <>
-                  <SkeletonText noOfLines={1} skeletonHeight="4" mb={4} w="50%" />
+                  <SkeletonText
+                    noOfLines={1}
+                    skeletonHeight="4"
+                    mb={4}
+                    w="50%"
+                  />
                   <SkeletonText noOfLines={2} skeletonHeight="3" mb={4} />
                   <SkeletonText noOfLines={2} skeletonHeight="3" mb={4} />
-                  <SkeletonText noOfLines={1} skeletonHeight="3" mb={4} w="70%" />
-                  <SkeletonText noOfLines={1} skeletonHeight="3" mb={4} w="60%" />
+                  <SkeletonText
+                    noOfLines={1}
+                    skeletonHeight="3"
+                    mb={4}
+                    w="70%"
+                  />
+                  <SkeletonText
+                    noOfLines={1}
+                    skeletonHeight="3"
+                    mb={4}
+                    w="60%"
+                  />
                   <Flex gap={5} mt={4}>
                     <Box>
-                      <SkeletonText noOfLines={1} skeletonHeight="3" w="12" mb={1} />
+                      <SkeletonText
+                        noOfLines={1}
+                        skeletonHeight="3"
+                        w="12"
+                        mb={1}
+                      />
                       <SkeletonText noOfLines={1} skeletonHeight="4" w="8" />
                     </Box>
                     <Box>
-                      <SkeletonText noOfLines={1} skeletonHeight="3" w="16" mb={1} />
+                      <SkeletonText
+                        noOfLines={1}
+                        skeletonHeight="3"
+                        w="16"
+                        mb={1}
+                      />
                       <SkeletonText noOfLines={1} skeletonHeight="4" w="8" />
                     </Box>
                   </Flex>
@@ -552,8 +630,12 @@ export default function PhotoViewer({
 function InfoRow({ label, value }) {
   return (
     <Box mb={4}>
-      <Text fontSize="xs" color="gray.500" mb={1}>{label}</Text>
-      <Text fontSize="sm" color="gray.800">{value}</Text>
+      <Text fontSize="xs" color="gray.500" mb={1}>
+        {label}
+      </Text>
+      <Text fontSize="sm" color="gray.800">
+        {value}
+      </Text>
     </Box>
   );
 }

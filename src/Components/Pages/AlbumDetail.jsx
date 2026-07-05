@@ -23,10 +23,10 @@ export default function AlbumDetail() {
 
       return res.data.results;
     },
-    [API_KEY],
+    [API_KEY, albumPath], // fixed: refetch when album changes
   );
 
-  const gallery = usePhotoGallery(fetchPhotos);
+  const gallery = usePhotoGallery(fetchPhotos, albumPath); // fixed: reset state per album
 
   return <PhotoGallery {...gallery} />;
 }

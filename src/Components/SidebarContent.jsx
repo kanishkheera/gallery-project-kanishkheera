@@ -47,11 +47,11 @@ const menuItems2 = [
     label: "Deleted Items",
     path: "/trash",
   },
-  {
-    icon: MdOutlineSettings,
-    label: "Settings",
-    path: "/settings",
-  },
+  // {
+  //   icon: MdOutlineSettings,
+  //   label: "Settings",
+  //   path: "/settings",
+  // },
 ];
 
 export default function SidebarContent({ onItemClick }) {

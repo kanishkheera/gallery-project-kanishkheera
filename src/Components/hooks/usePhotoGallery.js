@@ -2,6 +2,7 @@ import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useFilter } from "../context/FilterContext";
+import { useDeleted } from "../context/DeleteContext";
 import { filterByOrientation } from "../utils/orientation";
 
 export default function usePhotoGallery(fetchPhotos, resetKey = null) {
@@ -11,6 +12,7 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   const [hasMore, setHasMore] = useState(true);
   const [selectedPhotoId, setSelectedPhotoId] = useState(null);
   const { selected } = useFilter();
+  const { isDeleted } = useDeleted();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const resolvedPhotoRef = useRef(null);
@@ -19,8 +21,9 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   const API_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
   const filteredPhotos = useMemo(
-    () => filterByOrientation(photos, selected),
-    [photos, selected],
+    () =>
+      filterByOrientation(photos, selected).filter((p) => !isDeleted(p.id)),
+    [photos, selected, isDeleted],
   );
 
   // Capped auto-fetch: keep pulling more pages while a filter has thinned
@@ -46,15 +49,12 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
       const timer = setTimeout(() => {
         autoFetchCountRef.current += 1;
         setPage((prev) => prev + 1);
-      }, 400); // small gap so fetches don't all fire back-to-back
+      }, 400);
 
       return () => clearTimeout(timer);
     }
   }, [selected, filteredPhotos.length, hasMore, loading]);
 
-  // FIX: must search filteredPhotos, since that's the array PhotoViewer
-  // actually receives as `photos`. Searching the unfiltered array here
-  // was the cause of "click one photo, viewer shows a different one."
   const selectedIndex =
     selectedPhotoId === null
       ? null

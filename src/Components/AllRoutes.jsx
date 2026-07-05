@@ -17,7 +17,7 @@ const allPageRoute = [
   { path: "/favorites", element: <Favorites /> },
   { path: "/recent", element: <RecentlyAdded /> },
   { path: "/trash", element: <DeletedItems /> },
-  { path: "/settings", element: <Settings /> },
+  // { path: "/settings", element: <Settings /> },
   { path: "/search", element: <SearchPhotos /> },
 ];
 

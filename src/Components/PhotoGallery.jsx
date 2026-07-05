@@ -1,4 +1,4 @@
-import { Box, Center, Spinner, useBreakpointValue } from "@chakra-ui/react";
+import { Box, Center, Spinner, Text, useBreakpointValue } from "@chakra-ui/react";
 import Masonry from "react-masonry-css";
 import ImageCard from "./ImageCard";
 import PhotoViewer from "./PhotoViewer";
@@ -27,6 +27,14 @@ export function PhotoGallery({
     lg: "16px",
     xl: "20px",
   });
+
+  if (photos.length === 0 && !loading) {
+    return (
+      <Center py={16}>
+        <Text color="gray.500">No photos match this filter.</Text>
+      </Center>
+    );
+  }
 
   return (
     <Box
