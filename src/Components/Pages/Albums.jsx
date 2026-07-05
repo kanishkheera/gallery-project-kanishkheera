@@ -24,6 +24,20 @@ const albums = [
     path: "agra",
   },
   {
+    id: 10,
+    name: "Superbikes",
+    image:
+      "https://www.team-bhp.com/sites/default/files/styles/amp_high_res/public/IMG_3578%20%281%29.jpg",
+    path: "superbikes",
+  },
+  {
+    id: 11,
+    name: "Flower",
+    image:
+      "https://hips.hearstapps.com/hmg-prod/images/pale-purple-cosmos-flower-1656258166.jpeg?crop=1.00xw:0.834xh;0,0.160xh",
+    path: "flower",
+  },
+  {
     id: 1,
     name: "Nature",
     image:
