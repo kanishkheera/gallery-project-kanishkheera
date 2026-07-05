@@ -17,6 +17,7 @@ import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
 import SearchBar from "./SearchBar";
 import FiltersBar from "./FiltersBar";
+import { albums } from "./data/albums"
 
 const menuItems = [
   { label: "All Photos", path: "/" },
@@ -34,13 +35,17 @@ export default function Navbar() {
   const location = useLocation();
 
   const albumPath = location.pathname.startsWith("/albums/")
-    ? location.pathname.split("/")[2]
-    : null;
+  ? location.pathname.split("/")[2]
+  : null;
 
-  const currentPage = albumPath
-    ? albumPath.charAt(0).toUpperCase() + albumPath.slice(1)
-    : menuItems.find((item) => item.path === location.pathname)?.label ||
-      "Gallery";
+const albumName = albumPath
+  ? albums.find((a) => a.path === albumPath)?.name
+  : null;
+
+const currentPage =
+  albumName ||
+  menuItems.find((item) => item.path === location.pathname)?.label ||
+  "Gallery";
 
   return (
     <>
