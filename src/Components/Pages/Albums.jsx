@@ -85,7 +85,11 @@ export default function Albums() {
   return (
     <Grid templateColumns={`repeat(${columns}, 1fr)`} gap={gap} w="100%">
       {albums.map((album) => (
-        <NavLink to={`/albums/${album.path}`} key={album.id}>
+        <NavLink
+          to={`/albums/${album.path}`}
+          key={album.id}
+          onClick={() => window.scrollTo(0, 0)}
+        >
           <Box
             borderRadius="xl"
             overflow="hidden"

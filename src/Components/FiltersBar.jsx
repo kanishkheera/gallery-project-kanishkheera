@@ -109,6 +109,7 @@ const FiltersBar = () => {
                       onSelect={() => {
                         setSelected(value);
                         setIsOpen(false);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       _hover={{ bg: "#F4EEFF" }}
                     >
