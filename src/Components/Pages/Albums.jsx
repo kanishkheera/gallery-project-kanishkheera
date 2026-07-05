@@ -32,7 +32,7 @@ const albums = [
   },
   {
     id: 11,
-    name: "Flower",
+    name: "Flowers",
     image:
       "https://hips.hearstapps.com/hmg-prod/images/pale-purple-cosmos-flower-1656258166.jpeg?crop=1.00xw:0.834xh;0,0.160xh",
     path: "flower",
