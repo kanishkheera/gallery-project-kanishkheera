@@ -12,6 +12,8 @@ export default function Sidebar() {
       position="fixed"
       left="0"
       top="0"
+      overflowY="auto"
+      overscrollBehaviorY="contain"
     >
       <SidebarContent/>
     </Box>

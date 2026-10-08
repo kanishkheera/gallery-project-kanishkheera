@@ -9,6 +9,7 @@ export default function SearchBar() {
     <>
       <Button
         onClick={() => searchDialog.open("form", { title: "Search Image" })}
+        cursor="pointer"
         borderRadius="full"
         bg="#F4EEFF"
         color="#8550D3"

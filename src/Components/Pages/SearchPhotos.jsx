@@ -1,8 +1,8 @@
 import { useCallback } from "react";
-import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import { PhotoGallery } from "../PhotoGallery";
 import usePhotoGallery from "../hooks/usePhotoGallery";
+import unsplashRequest from "../utils/unsplashRequest";
 
 export default function SearchPhotos() {
   const [searchParams] = useSearchParams();
@@ -13,18 +13,13 @@ export default function SearchPhotos() {
     async (page) => {
       if (!query) return [];
 
-      const res = await axios.get("https://api.unsplash.com/search/photos", {
-        headers: {
-          Authorization: `Client-ID ${API_KEY}`,
-        },
-        params: {
-          page,
-          per_page: 30,
-          query,
-        },
+      const data = await unsplashRequest("/search/photos", API_KEY, {
+        page,
+        per_page: 30,
+        query,
       });
 
-      return res.data.results;
+      return data.results;
     },
     [query, API_KEY]
   );

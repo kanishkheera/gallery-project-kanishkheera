@@ -4,12 +4,8 @@ import {
   Flex,
   Heading,
   HStack,
-  Text,
-  VStack,
 } from "@chakra-ui/react";
-import { useLocation, useParams } from "react-router-dom";
-import { IoSearch } from "react-icons/io5";
-import { LuFilter } from "react-icons/lu";
+import { useLocation } from "react-router-dom";
 import { IconButton } from "@chakra-ui/react";
 import { HiOutlineMenu } from "react-icons/hi";
 import { useState } from "react";
@@ -17,35 +13,14 @@ import { Drawer, Portal } from "@chakra-ui/react";
 import SidebarContent from "./SidebarContent";
 import SearchBar from "./SearchBar";
 import FiltersBar from "./FiltersBar";
-import { albums } from "./data/albums"
-
-const menuItems = [
-  { label: "All Photos", path: "/" },
-  { label: "Albums", path: "/albums" },
-  { label: "Favorites", path: "/favorites" },
-  { label: "Recently Added", path: "/recent" },
-  { label: "Deleted Items", path: "/trash" },
-  { label: "Settings", path: "/settings" },
-  { label: "Buddha", path: "/albums/:name" },
-];
+import getNavbarPageTitle from "./utils/getNavbarPageTitle";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   const location = useLocation();
-
-  const albumPath = location.pathname.startsWith("/albums/")
-  ? location.pathname.split("/")[2]
-  : null;
-
-const albumName = albumPath
-  ? albums.find((a) => a.path === albumPath)?.name
-  : null;
-
-const currentPage =
-  albumName ||
-  menuItems.find((item) => item.path === location.pathname)?.label ||
-  "Gallery";
+  const currentPage = getNavbarPageTitle(location.pathname);
+  const showSearchAndFilters = !["/about", "/contact"].includes(location.pathname);
 
   return (
     <>
@@ -75,7 +50,7 @@ const currentPage =
             <Heading
               flex={1}
               minW={0}
-              size={"2xl"}
+              size={{ base: "xl", md: "2xl" }}
               overflow="hidden"
               whiteSpace="nowrap"
               textOverflow="ellipsis"
@@ -84,10 +59,12 @@ const currentPage =
             </Heading>
           </HStack>
 
-          <HStack gap={6} mr={2} flexShrink={0}>
-            <SearchBar />
-            <FiltersBar />
-          </HStack>
+          {showSearchAndFilters && (
+            <HStack gap={6} mr={2} flexShrink={0}>
+              <SearchBar />
+              <FiltersBar />
+            </HStack>
+          )}
         </Flex>
       </Box>
       <Drawer.Root
@@ -99,7 +76,7 @@ const currentPage =
           <Drawer.Backdrop bg="blackAlpha.700" />
 
           <Drawer.Positioner>
-            <Drawer.Content maxW="260px">
+            <Drawer.Content maxW="260px" overflowY="auto" overscrollBehaviorY="contain">
               <Drawer.CloseTrigger asChild>
                 <CloseButton position="absolute" top={4} right={4} />
               </Drawer.CloseTrigger>

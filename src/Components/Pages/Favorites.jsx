@@ -1,21 +1,28 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PhotoGallery } from "../PhotoGallery";
-import { useFavorites } from "../context/FavoritesContext";
-import { useDeleted } from "../context/DeleteContext";
-import { useFilter } from "../context/FilterContext";
+import { useSelector } from "../../store/hooks";
+import { selectFavorites } from "../../store/slices/favoritesSlice";
+import { selectDeleted } from "../../store/slices/deletedSlice";
+import { selectSelectedFilter } from "../../store/slices/filtersSlice";
 import { filterByOrientation } from "../utils/orientation";
 
 export default function Favorites() {
-  const { favorites } = useFavorites();
-  const { isDeleted } = useDeleted();
-  const { selected } = useFilter();
+  const favorites = useSelector(selectFavorites);
+  const deleted = useSelector(selectDeleted);
+  const selected = useSelector(selectSelectedFilter);
   const [selectedPhotoId, setSelectedPhotoId] = useState(null);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
-  const photos = filterByOrientation(
-    favorites.filter((p) => !isDeleted(p.id)),
-    selected
+  const availableFavorites = useMemo(
+    () => favorites.filter(
+      (photo) => !deleted.some((deletedPhoto) => deletedPhoto.id === photo.id),
+    ),
+    [favorites, deleted],
+  );
+  const photos = useMemo(
+    () => filterByOrientation(availableFavorites, selected),
+    [availableFavorites, selected],
   );
 
   const selectedIndex =
@@ -46,6 +53,10 @@ export default function Favorites() {
     setSelectedPhotoId,
     closeViewer,
     onLoadMore,
+    emptyMessage:
+      availableFavorites.length === 0
+        ? "No favorite photos found. Add photos to your favorites to see them here."
+        : "No favorite photos match this filter.",
   };
 
   return <PhotoGallery {...gallery} />;

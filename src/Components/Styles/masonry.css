@@ -2,11 +2,13 @@
   display: flex;
   margin-left: calc(-1 * var(--gallery-gap));
   width: auto;
+  min-width: 0;
 }
 
 .my-masonry-grid_column {
   padding-left: var(--gallery-gap);
   background-clip: padding-box;
+  min-width: 0;
 }
 
 .my-masonry-grid_column > div {

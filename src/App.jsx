@@ -1,4 +1,4 @@
-import { Box, Button, HStack } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import Sidebar from "./Components/Sidebar";
 import Navbar from "./Components/Navbar";
 import AllRoutes from "./Components/AllRoutes";
@@ -9,9 +9,9 @@ function App() {
     <>
       <ScrollToTop />
       <Sidebar />
-      <Box ml={{ base: "0", xl: "260px" }}>
+      <Box ml={{ base: "0", xl: "260px" }} minW={0}>
         <Navbar />
-        <Box mx={4} mt={3}>
+        <Box mx={{ base: 1, md: 4 }} mt={{ base: 2, md: 3 }} minW={0}>
           <AllRoutes />
         </Box>
       </Box>

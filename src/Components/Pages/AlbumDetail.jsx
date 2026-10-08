@@ -1,8 +1,8 @@
-import axios from "axios";
 import { useCallback } from "react";
 import { PhotoGallery } from "../PhotoGallery";
 import usePhotoGallery from "../hooks/usePhotoGallery";
 import { useParams } from "react-router-dom";
+import unsplashRequest from "../utils/unsplashRequest";
 
 export default function AlbumDetail() {
   const { albumPath } = useParams();
@@ -10,18 +10,13 @@ export default function AlbumDetail() {
 
   const fetchPhotos = useCallback(
     async (page) => {
-      const res = await axios.get("https://api.unsplash.com/search/photos", {
-        headers: {
-          Authorization: `Client-ID ${API_KEY}`,
-        },
-        params: {
-          page,
-          per_page: 30,
-          query: albumPath,
-        },
+      const data = await unsplashRequest("/search/photos", API_KEY, {
+        page,
+        per_page: 30,
+        query: albumPath,
       });
 
-      return res.data.results;
+      return data.results;
     },
     [API_KEY, albumPath], // fixed: refetch when album changes
   );

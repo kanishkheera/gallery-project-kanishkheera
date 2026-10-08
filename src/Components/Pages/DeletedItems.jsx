@@ -1,54 +1,18 @@
-import { useState } from "react";
-import {
-  Box,
-  Center,
-  Text,
-  IconButton,
-  Flex,
-  Grid,
-  Image,
-  Button,
-  Dialog,
-  Portal,
-  useBreakpointValue,
-} from "@chakra-ui/react";
-import { IoRefreshOutline, IoTrashOutline } from "react-icons/io5";
-import { useDeleted } from "../context/DeleteContext";
-import { useFilter } from "../context/FilterContext";
-import { filterByOrientation } from "../utils/orientation";
+import { Box, Button, Center, Flex, Text, useBreakpointValue } from "@chakra-ui/react";
+import Masonry from "react-masonry-css";
+import DeletedPhotoCard from "./DeletedItems/DeletedPhotoCard";
+import useDeletedItems from "./DeletedItems/useDeletedItems";
+import "../Styles/masonry.css";
 
 export default function DeletedItems() {
-  const { deleted, restorePhoto, permanentDelete, permanentDeleteMany } = useDeleted();
-  const { selected } = useFilter();
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { deleted, photos, handleRestore, restoreAll } = useDeletedItems();
+  const gap = useBreakpointValue({ base: "8px", md: "12px", lg: "16px", xl: "20px" });
+  const breakpointColumns = { default: 5, 1400: 4, 768: 3, 500: 2, 360: 2 };
 
-  const photos = filterByOrientation(deleted, selected);
-
-  const columns = useBreakpointValue({
-    base: 2,
-    md: 3,
-    xl: 4,
-    "2xl": 5,
-  });
-
-  const gap = useBreakpointValue({
-    base: "8px",
-    md: "12px",
-    lg: "16px",
-    xl: "20px",
-  });
-
-  const confirmDeleteAll = () => {
-    permanentDeleteMany(photos.map((p) => p.id));
-    setConfirmOpen(false);
-  };
-
-  if (photos.length === 0) {
+  if (deleted.length === 0) {
     return (
       <Center h="60vh">
-        <Text color="gray.500">
-          {deleted.length === 0 ? "Trash is empty." : "No items match this filter."}
-        </Text>
+        <Text color="gray.500">Trash is empty.</Text>
       </Center>
     );
   }
@@ -56,74 +20,27 @@ export default function DeletedItems() {
   return (
     <Box>
       <Flex justify="flex-end" mb={4}>
-        <Button
-          size="sm"
-          colorPalette="red"
-          variant="outline"
-          onClick={() => setConfirmOpen(true)}
-        >
-          Delete All ({photos.length})
+        <Button size="sm" colorPalette="green" variant="outline" onClick={restoreAll}>
+          Restore All ({deleted.length})
         </Button>
       </Flex>
-
-      <Grid templateColumns={`repeat(${columns}, 1fr)`} gap={gap} w="100%">
-        {photos.map((photo) => (
-          <Box key={photo.id} borderRadius="lg" overflow="hidden" boxShadow="sm" position="relative">
-            <Image src={photo.urls.small} w="100%" h="220px" objectFit="cover" opacity={0.6} />
-
-            <Flex position="absolute" top={2} right={2} gap={2}>
-              <IconButton
-                aria-label="Restore"
-                size="sm"
-                borderRadius="full"
-                bg="whiteAlpha.900"
-                color="green.600"
-                onClick={() => restorePhoto(photo.id)}
-              >
-                <IoRefreshOutline size={16} />
-              </IconButton>
-
-              <IconButton
-                aria-label="Delete permanently"
-                size="sm"
-                borderRadius="full"
-                bg="whiteAlpha.900"
-                color="red.600"
-                onClick={() => permanentDelete(photo.id)}
-              >
-                <IoTrashOutline size={16} />
-              </IconButton>
-            </Flex>
-          </Box>
-        ))}
-      </Grid>
-
-      <Dialog.Root open={confirmOpen} onOpenChange={(e) => setConfirmOpen(e.open)} role="alertdialog">
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
-              <Dialog.Header>
-                <Dialog.Title>Delete {photos.length} photo{photos.length > 1 ? "s" : ""}?</Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text color="gray.600">
-                  This action can't be undone. These photos will be permanently removed.
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer>
-                <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
-                  Cancel
-                </Button>
-                <Button colorPalette="red" onClick={confirmDeleteAll}>
-                  Delete
-                </Button>
-              </Dialog.Footer>
-              <Dialog.CloseTrigger />
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
+      {photos.length === 0 ? (
+        <Center h="40vh">
+          <Text color="gray.500">No items match this filter.</Text>
+        </Center>
+      ) : (
+        <Box style={{ "--gallery-gap": gap }}>
+          <Masonry
+            breakpointCols={breakpointColumns}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
+            {photos.map((photo) => (
+              <DeletedPhotoCard key={photo.id} photo={photo} onRestore={handleRestore} />
+            ))}
+          </Masonry>
+        </Box>
+      )}
     </Box>
   );
 }

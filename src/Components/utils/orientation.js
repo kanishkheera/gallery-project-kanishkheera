@@ -1,11 +1,17 @@
 export const getOrientation = (width, height) => {
-  const ratio = width / height;
-  if (Math.abs(ratio - 1) < 0.05) return "square";
-  if (ratio > 1.6) return "wide";
-  return ratio > 1 ? "landscape" : "portrait";
+  // Persisted photo data can contain dimensions as numeric strings. Normalize
+  // them before comparing so those photos are included in the right filter.
+  const photoWidth = Number(width);
+  const photoHeight = Number(height);
+  if (!Number.isFinite(photoWidth) || !Number.isFinite(photoHeight) || photoHeight <= 0 || photoWidth <= 0) {
+    return "unknown";
+  }
+
+  if (photoWidth === photoHeight) return "square";
+  return photoWidth > photoHeight ? "landscape" : "portrait";
 };
 
 export const filterByOrientation = (photos, selected) =>
   selected === "all"
     ? photos
-    : photos.filter((p) => getOrientation(p.width, p.height) === selected);
+    : photos.filter((photo) => getOrientation(photo.width, photo.height) === selected);

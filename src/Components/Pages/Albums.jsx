@@ -5,6 +5,7 @@ import { albums } from "../data/albums";
 export default function Albums() {
   const columns = useBreakpointValue({
     base: 2,
+    sm: 2,
     md: 3,
     xl: 4,
     "2xl": 5,
@@ -37,7 +38,12 @@ export default function Albums() {
               boxShadow: "lg",
             }}
           >
-            <Image src={album.image} h="180px" w="100%" objectFit="cover" />
+            <Image
+              src={album.image}
+              h={{ base: "120px", sm: "150px", md: "180px" }}
+              w="100%"
+              objectFit="cover"
+            />
 
             <Box p={3}>
               <Text fontWeight="bold">{album.name}</Text>

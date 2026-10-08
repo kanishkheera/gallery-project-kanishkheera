@@ -1,16 +1,11 @@
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { FilterProvider } from "./Components/context/FilterContext";
-import { FavoritesProvider } from "./Components/context/FavoritesContext";
-import { DeletedProvider } from "./Components/context/DeleteContext";
+import { Provider as ReduxProvider } from "react-redux";
+import store from "./store";
 
 export function Provider({ children }) {
   return (
     <ChakraProvider value={defaultSystem}>
-      <FilterProvider>
-        <FavoritesProvider>
-          <DeletedProvider>{children}</DeletedProvider>
-        </FavoritesProvider>
-      </FilterProvider>
+      <ReduxProvider store={store}>{children}</ReduxProvider>
     </ChakraProvider>
   );
 }
