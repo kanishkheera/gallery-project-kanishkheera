@@ -9,13 +9,15 @@ export default function usePhotoViewerCarousel({
   hasMore,
   loadingMore,
 }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, duration: 25 });
+  // Embla's duration controls attraction strength: lower values ease more slowly.
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, duration: 12 });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [fullView, setFullView] = useState(false);
   const [currentImageLoaded, setCurrentImageLoaded] = useState(false);
   const loadedIdsRef = useRef(new Set());
+  const initializedApiRef = useRef(null);
   const prevIndexRef = useRef(selectedIndex);
   const pendingAdvanceRef = useRef(false);
 
@@ -42,8 +44,13 @@ export default function usePhotoViewerCarousel({
       }
     };
 
-    emblaApi.scrollTo(selectedIndex, true);
-    prevIndexRef.current = selectedIndex;
+    // Position instantly only when the viewer first initializes. selectedIndex
+    // changes as the user navigates; resetting here would cancel each animation.
+    if (initializedApiRef.current !== emblaApi) {
+      emblaApi.scrollTo(selectedIndex, true);
+      initializedApiRef.current = emblaApi;
+      prevIndexRef.current = selectedIndex;
+    }
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
     const frameId = requestAnimationFrame(onSelect);
