@@ -28,5 +28,10 @@ export default function SearchPhotos() {
   // page/photos/selectedPhotoId reset just like the old inline effect did.
   const gallery = usePhotoGallery(fetchPhotos, query);
 
-  return <PhotoGallery {...gallery} />;
+  return (
+    <PhotoGallery
+      {...gallery}
+      emptyMessage={query ? `No search results found for "${query}".` : "Enter a search term to find photos."}
+    />
+  );
 }
