@@ -55,7 +55,7 @@ export default function Favorites() {
     onLoadMore,
     emptyMessage:
       availableFavorites.length === 0
-        ? "No favorite photos found. Add photos to your favorites to see them here."
+        ? "No favorite photos found."
         : "No favorite photos match this filter.",
   };
 
