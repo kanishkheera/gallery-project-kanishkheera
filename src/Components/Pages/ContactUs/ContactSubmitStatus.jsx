@@ -5,9 +5,6 @@ import { CONTACT_ACCENT } from "./contactData";
 export default function ContactSubmitStatus({ submissionStatus, isSending }) {
   return (
     <>
-      <Text color="gray.500" fontSize="xs" lineHeight="1.5">
-        Your message will be sent through Web3Forms.
-      </Text>
 
       {submissionStatus && (
         <Box

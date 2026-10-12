@@ -13,6 +13,8 @@ export default function ContactMessageForm({
   return (
     <VStack
       as="form"
+      id="contact-form"
+      scrollMarginTop={{ base: "16px", sm: "20px", md: "24px", lg: "32px" }}
       onSubmit={onSubmit}
       noValidate
       align="stretch"

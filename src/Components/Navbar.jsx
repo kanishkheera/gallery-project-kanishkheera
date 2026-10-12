@@ -25,6 +25,7 @@ export default function Navbar() {
   return (
     <>
       <Box
+        data-scroll-header
         position="sticky"
         top="0"
         zIndex="1000"
