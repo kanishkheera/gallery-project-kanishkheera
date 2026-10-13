@@ -2,7 +2,10 @@ const initialState = { items: [] };
 
 export const TOGGLE_FAVORITE = "favorites/toggle";
 
-export const toggleFavorite = (photo) => ({ type: TOGGLE_FAVORITE, payload: photo });
+export const toggleFavorite = (photo) => ({
+  type: TOGGLE_FAVORITE,
+  payload: photo,
+});
 
 export default function favoritesReducer(state = initialState, action) {
   if (action.type !== TOGGLE_FAVORITE || !action.payload) return state;
@@ -16,6 +19,8 @@ export default function favoritesReducer(state = initialState, action) {
   };
 }
 
-export const selectFavorites = (state) => state.favorites.items;
+export const selectFavorites = (state) => {
+  return state.favorites.items;
+};
 export const selectIsFavorite = (photoId) => (state) =>
   state.favorites.items.some((photo) => photo.id === photoId);

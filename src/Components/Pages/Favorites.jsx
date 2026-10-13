@@ -15,9 +15,11 @@ export default function Favorites() {
   const [, setSearchParams] = useSearchParams();
 
   const availableFavorites = useMemo(
-    () => favorites.filter(
-      (photo) => !deleted.some((deletedPhoto) => deletedPhoto.id === photo.id),
-    ),
+    () =>
+      favorites.filter(
+        (photo) =>
+          !deleted.some((deletedPhoto) => deletedPhoto.id === photo.id),
+      ),
     [favorites, deleted],
   );
   const photos = useMemo(
@@ -38,7 +40,7 @@ export default function Favorites() {
         next.delete("photo");
         return next;
       },
-      { replace: true }
+      { replace: true },
     );
   }, [setSearchParams]);
 
