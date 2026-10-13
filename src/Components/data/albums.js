@@ -21,6 +21,13 @@ export const albums = [
     path: "agra",
   },
   {
+    id: 12,
+    name: "Mountain",
+    image:
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5ODk2ODB8MHwxfHNlYXJjaHw2fHxtb3VudGFpbnxlbnwwfHx8fDE3OTE4OTk4NDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    path: "mountain",
+  },
+  {
     id: 10,
     name: "Superbikes",
     image:
