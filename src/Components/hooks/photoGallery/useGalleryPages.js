@@ -14,6 +14,7 @@ export default function useGalleryPages(fetchPhotos, resetKey, searchParams) {
   }, [searchParams]);
 
   useEffect(() => {
+    let isCurrentRequest = true;
     const loadPhotos = async () => {
       const pendingAutoFetchPageCount = pendingAutoFetchRef.current;
       const requestedPageCount = pendingAutoFetchPageCount || 1;
@@ -30,6 +31,7 @@ export default function useGalleryPages(fetchPhotos, resetKey, searchParams) {
             fetchPhotos(firstRequestedPage + index),
           ),
         );
+        if (!isCurrentRequest) return;
         const newPhotos = pageResults.flat();
 
         if (firstRequestedPage === 1) {
@@ -49,14 +51,18 @@ export default function useGalleryPages(fetchPhotos, resetKey, searchParams) {
 
         setHasMore(pageResults.at(-1)?.length > 0);
       } catch (error) {
-        console.log(error);
+        if (isCurrentRequest) console.error("Failed to load gallery photos:", error);
       }
 
+      if (!isCurrentRequest) return;
       setLoading(false);
       if (!isAutoFetch) setShowLoading(false);
     };
 
     loadPhotos();
+    return () => {
+      isCurrentRequest = false;
+    };
   }, [page, fetchPhotos]);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import useFilteredGallery from "./photoGallery/useFilteredGallery";
 import useGalleryPages from "./photoGallery/useGalleryPages";
 import useGalleryPhotoSelection from "./photoGallery/useGalleryPhotoSelection";
 
-export default function usePhotoGallery(fetchPhotos, resetKey = null) {
+export default function usePhotoGallery(fetchPhotos, resetKey = null, options = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const pages = useGalleryPages(fetchPhotos, resetKey, searchParams);
   const { filteredPhotos, waitingForFilteredResults } = useFilteredGallery({
@@ -12,6 +12,7 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
     loading: pages.loading,
     hasMore: pages.hasMore,
     requestPages: pages.requestPages,
+    ignoreFilter: options.ignoreFilter,
   });
   const selection = useGalleryPhotoSelection({
     photos: pages.photos,
@@ -26,7 +27,8 @@ export default function usePhotoGallery(fetchPhotos, resetKey = null) {
   useEffect(() => {
     const handleScroll = () => {
       const nearBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 200;
       if (nearBottom && !loading && hasMore) requestPages();
     };
 

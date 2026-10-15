@@ -26,7 +26,7 @@ export default function SearchPhotos() {
 
   // `query` doubles as the resetKey — when the search term changes,
   // page/photos/selectedPhotoId reset just like the old inline effect did.
-  const gallery = usePhotoGallery(fetchPhotos, query);
+  const gallery = usePhotoGallery(fetchPhotos, query, { ignoreFilter: true });
 
   return (
     <PhotoGallery
